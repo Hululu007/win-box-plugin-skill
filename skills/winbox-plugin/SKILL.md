@@ -7,10 +7,12 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 
 为 Win-Box 制作 / 校验 / 打包 `.winbox` 插件。
 
-## 唯一事实源（先读）
-- **规范**（字段 / 白名单 / 校验的唯一权威）：仓库根目录的 **`SPEC.md`**
+## 冷启动（先读这两页）
+1. `references/host-overview.md` —— **宿主速览**（Win-Box 是什么 / 双内核与 GLSL 只作用 MPV / M1 白名单 / 插件在 UI 何处出现）。**冷启动必读**，补齐项目背景常识。
+2. `SPEC.md`（仓库根）—— **规范**：字段 / 白名单 / 校验的唯一权威。
 
 > 你的产出**不得与规范冲突**；若发现冲突，**以规范为准**，并提醒用户更新规范。
+> 需要核对白名单 / 宿主实现时才**定向**看主仓（`github.com/yagami-hue/Win-box`；M1 后看 `src/shared/plugin.ts`）——**不要通读整个仓库**。
 
 ## 铁律
 1. **`permissions` 只属 L4**（`kind:"code"`）；L1/L2/L3（`kind:"asset"`）**必须** `permissions: []`。
@@ -37,6 +39,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 | L4 沙箱代码 | `code` | 可组合 | 必填（白名单） | 需出网 / 存数据 / 控制播放 |
 
 ## 参考
+- 宿主速览（冷启动必读）：`references/host-overview.md`
 - 字段与白名单速查：`references/manifest-reference.md`
 - 发布前校验清单：`references/checks.md`
 - 骨架与完整示例：`assets/`
