@@ -45,13 +45,13 @@
           "id": "general",
           "label": "通用档",
           "hint": "RAVU-Lite，真人/实拍通用、轻量",
-          "shaders": ["RAVU-Lite.glsl"]
+          "shaders": ["ravu-lite-r4.hook"]
         },
         {
           "id": "high",
           "label": "高质量档",
           "hint": "FSRCNNX，通用、吃显卡",
-          "shaders": ["FSRCNNX_x2.glsl"]
+          "shaders": ["FSRCNNX_x2_8-0-4-1.glsl"]
         }
       ]
     }

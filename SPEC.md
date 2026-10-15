@@ -85,9 +85,10 @@ Rename-Item super-resolution.zip super-resolution.winbox
 |---|---|
 | 容器 | **zip**（宿主用 `extractArchiveEntries` 解，支持 store/deflate；7z/rar 不可用作 `.winbox`） |
 | 根级必备 | `plugin.json`（**不得**多套目录层） |
-| 可选 | `files/`（插件自带资源）、`LICENSE`、`README.md` |
+| 可选 | `files/`（插件自带资源）、`LICENSE`、`README.md`、`licenses/`（第三方许可原文，见下） |
 | 文件命名 | 一律 UTF-8、相对路径；**禁止绝对路径 / `..` / 盘符** |
 | 包命名 | `<id>.winbox`（id 与 manifest 一致） |
+| 第三方许可 | ★ 插件随包**第三方资源**（着色器等）时：根级 `LICENSE` = **插件自身**许可（与 manifest `license` 一致）；第三方许可原文放 `licenses/<上游名>.txt` **原样归档**，并在根 `LICENSE` 里加「署名 / 上游 / 许可对照」段。若上游是 copyleft（如 GPL-3 / LGPL-3），**必须**与资源一起分发其许可原文 + 上游地址（资源本身即"源码形态"） |
 | 完整性 | 宿主按**内置许可清单**的 `sha256` 校验运行库；`.winbox` 本体可选签名字段（v1 未启用） |
 | 大小上限 | v1 建议 ≤ 50MB（大资源请走 `runtimeDeps`，见 §7） |
 
@@ -154,6 +155,8 @@ Rename-Item super-resolution.zip super-resolution.winbox
 ```
 - `modes[].shaders` **顺序即生效顺序**（先 restore/clamp，再 upscale，最后 downscale 保护）；
 - `shaders` 名称解析：**先在插件 `files/` 找，再到所声明的 `runtimeDeps` 目录找**，最终由宿主拼成**绝对路径**喂给 mpv（你不写绝对路径）；
+- `shaders` 条目**只要求"相对名 + 路径安全"**，**不限扩展名**：`.glsl` 与 `.hook`（mpv-prescalers 形态）都可 —— mpv 按文件头 `//!HOOK` 等指令识别用户着色器，**不看扩展名**；**但必须与 `files/` 里实际文件同名**（宿主安装期校验存在性）；
+- ★ 同一档位里的多条着色器**不要重复占用同一槽位**（如 RAVU-Lite 的 `ravu-lite-r4` 与 `ravu-lite-ar-r4` 都写 `//!SAVE ravu_lite_int`）——同槽位是**互斥**的，串联会互相覆盖；这类"变体"应**二选一**；
 - 用户可见档位由宿主统一渲染为 `off / <各 mode.label>`；多插件都提供 `mpv.shaders` 时以**用户选择**为准。
 
 > 宿主不认识 `contributes.type` → **忽略并告警**，不报错（前向兼容，便于宿主旧版跑新插件）。
