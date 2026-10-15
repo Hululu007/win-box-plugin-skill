@@ -28,7 +28,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 2. **写 `plugin.json`**：骨架见 `assets/plugin.asset.json` / `assets/plugin.code.json`；字段与约束见 `references/manifest-reference.md`。
 3. **放资源**：资源进 `files/`；要 mpv 档位 → `contributes:[{type:"mpv.shaders", modes:[…]}]`（**顺序即生效顺序**）。
    - `modes[].shaders` 里的名字必须与 `files/` 里**实际文件同名**（`.glsl` / `.hook` 都行，mpv 不看扩展名）；**别照抄占位名**。
-   - mpv 着色器来自**上游第三方项目**（含许可/命名/坑）→ 见 `references/shaders-sourcing.md`；随包了第三方资源就要在 `licenses/` 归档其许可原文。
+   - 着色器资源多为**第三方上游项目**：随包了第三方资源就要在 `licenses/` 归档其许可原文（copyleft 必做，见规范 §3）。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -44,5 +44,4 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - 宿主速览（冷启动必读）：`references/host-overview.md`
 - 字段与白名单速查：`references/manifest-reference.md`
 - 发布前校验清单：`references/checks.md`
-- 着色器资源从哪来（上游 / 许可 / 真实文件名 / 坑）：`references/shaders-sourcing.md`
 - 骨架与完整示例：`assets/`

@@ -9,7 +9,7 @@ Win-Box 是一个基于 Electron 的 Windows 桌面影视播放器，支持通�
 | 路径 | 说明 |
 |---|---|
 | [**`SPEC.md`**](SPEC.md) | **插件制作规范**（唯一权威）：能力分级 L1~L4、`.winbox` 包格式、`plugin.json` 字段与校验、`contributes` / `permissions` 白名单、运行库与在线更新、发布前校验清单 |
-| [**`skills/winbox-plugin/`**](skills/winbox-plugin/SKILL.md) | **AI Agent skill**：让 AI 直接按规范帮你**写 / 校验 / 打包**插件（宿主速览、字段速查、mpv 着色器溯源、校验工作流、`.winbox` 骨架与完整示例） |
+| [**`skills/winbox-plugin/`**](skills/winbox-plugin/SKILL.md) | **AI Agent skill**：让 AI 直接按规范帮你**写 / 校验 / 打包**插件（宿主速览、字段速查、校验工作流、`.winbox` 骨架与完整示例） |
 
 ## 快速开始
 
@@ -26,7 +26,6 @@ Win-Box 是一个基于 Electron 的 Windows 桌面影视播放器，支持通�
 │   ├── references/
 │   │   ├── host-overview.md             # 宿主速览（冷启动必读）
 │   │   ├── manifest-reference.md        # plugin.json 字段与白名单速查
-│   │   ├── shaders-sourcing.md          # mpv 着色器从哪来（上游 / 许可 / 真实文件名）
 │   │   └── checks.md                    # 发布前校验清单
 │   └── assets/
 │       ├── plugin.asset.json            # 声明式插件骨架
