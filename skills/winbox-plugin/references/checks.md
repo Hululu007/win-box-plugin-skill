@@ -37,7 +37,7 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 出现任何 `MISS` ⇒ **不要发布**（宿主校验器会以 `INCOMPLETE` / 声明文件缺失拒装）。
 
 ## 2.2 皮肤（`type:"theme"`）—— 逐条核对
-> 词表 / 枚举 / 自检全量口径：`references/theme-reference.md`；权威规范：仓库根 `THEME.md`。
+> 词表 / 枚举 / 自检全量口径：`references/theme-reference.md`；权威规范：`SPEC.md` §11。
 - [ ] 插件是 `kind:"asset"` + `permissions: []`（**code 插件不得声明皮肤** → `UNKNOWN_CONTRIBUTE_KIND`）
 - [ ] `theme.id` 匹配 `[a-z0-9-]{3,40}`；**不与内置皮肤（netflix/bilibili/apple/douban）或已装插件重名**（`THEME_ID_TAKEN`）
 - [ ] `theme.label` 非空；`theme.base` ∈ `dark | light`

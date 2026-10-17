@@ -9,7 +9,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 
 ## 冷启动（先读这两页）
 1. `references/host-overview.md` —— **宿主速览**（Win-Box 是什么 / 双内核与 GLSL 只作用 MPV / M1 白名单 / 插件在 UI 何处出现）。**冷启动必读**，补齐项目背景常识。
-2. `SPEC.md`（仓库根）—— **规范**：字段 / 白名单 / 校验的唯一权威；皮肤专项口径（令牌词表 / 布局枚举）见 `THEME.md`（仓库根）。
+2. `SPEC.md`（仓库根）—— **规范**：字段 / 白名单 / 校验的唯一权威；**皮肤专项口径（令牌词表 / 布局枚举 / 拒装原因码）在 §11**。
 
 > 你的产出**不得与规范冲突**；若发现冲突，**以规范为准**，并提醒用户更新规范。
 > 需要核对白名单 / 宿主实现时才**定向**看主仓（`github.com/yagami-hue/Win-box`；M1 后看 `src/shared/plugin.ts`）——**不要通读整个仓库**。
