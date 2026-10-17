@@ -37,6 +37,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      宿主**代发请求**（你不跑代码）：v1 仅 `GET` + JSON 响应；URL 里用占位符、JSON 里用**受限点号路径**取值。
      需要 POST / token / 解析 HTML → **只能用 L4**（`kind:"code"`）。
      结构 / 占位符 / 路径语法 / 自检 / 常见坑 → `references/subtitle-provider-reference.md`；骨架 → `assets/plugin.subtitle-provider.json`。
+   - 要**元数据源** → `contributes:[{type:"meta.provider", id, name, imageBase?, search:{url,list,map}}]`：
+     同上仅 `GET` + JSON。★ 它是**兜底**（内置 TMDB / 豆瓣都未命中才轮到它），**不抢占内置来源**；
+     v1 **不提供评分**（声明 `rating` 会被拒装）；海报为相对路径时用 `imageBase` 拼前缀。
+     结构 / 自检 / 常见坑 → `references/meta-provider-reference.md`；骨架 → `assets/plugin.meta-provider.json`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -53,5 +57,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - 字段与白名单速查：`references/manifest-reference.md`
 - **皮肤（theme）参考**：`references/theme-reference.md`（令牌词表 + 布局枚举 + 自检 + **发布产物示例与自测三步**）
 - **字幕源（subtitle.provider）参考**：`references/subtitle-provider-reference.md`（结构 + 占位符 + JSON 路径 + 自检 + 常见坑）
+- **元数据源（meta.provider）参考**：`references/meta-provider-reference.md`（结构 + 兜底定位 + imageBase + 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
-- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

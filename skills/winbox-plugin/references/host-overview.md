@@ -8,8 +8,9 @@
 
 ## 对插件最重要的几条
 - ★ **`mpv.shaders`（MPV 着色器）只在 MPV 内核生效**；HTML5 内核**跑不了 GLSL**。
-- 已实装的 contribute：**`mpv.shaders`**（着色器档位）、**`theme`**（皮肤）、**`subtitle.provider`**（字幕源，L2 声明式：
-  宿主按你的 URL 模板代发请求，你不跑代码）；其余（弹幕 / 元数据 / 发现页 / `ui.slot` / `player.engine` …）陆续接线。
+- 已实装的 contribute：**`mpv.shaders`**（着色器档位）、**`theme`**（皮肤）、**`subtitle.provider`**（字幕源）、
+  **`meta.provider`**（元数据源，**兜底**：内置 TMDB / 豆瓣未命中时才轮到它）——后两者都是 **L2 声明式**：
+  宿主按你的 URL 模板代发请求，**你不跑代码**；其余（弹幕 / 发现页 / `ui.slot` / `player.engine` …）陆续接线。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 
 ## 插件在软件里出现在哪

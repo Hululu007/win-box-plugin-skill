@@ -29,7 +29,8 @@
 | `mpv.shaders` | asset | M1 | ✅ |
 | `theme` | asset | M2 | ✅ |
 | `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `danmaku.source` / `meta.provider` / `discover.source` | asset / code | M2 | |
+| `meta.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
+| `danmaku.source` / `discover.source` | asset / code | M2 | |
 | `live.template` | asset | M2 | |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
@@ -61,6 +62,20 @@
 - 占位符：search 用 `{keyword}/{keywords}/{title}/{ep}`；fetch 用 `{file}/{subname}/{title}/{ep}`。
 - JSON 路径只支持**点号 + 下标**（`data.list` / `a.b[0]`），无 `[*]`、无函数。
 - 全量口径 / 自检 / 常见坑 → `references/subtitle-provider-reference.md`；骨架 → `assets/plugin.subtitle-provider.json`。
+
+## `meta.provider` 结构（L2 声明式元数据源）
+```jsonc
+{ "type": "meta.provider", "id": "my-meta", "name": "我的元数据站",
+  "imageBase": "https://img.example.com/t/p/w342",
+  "search": { "url": "https://api.example.com/search?q={keyword}&year={year}",
+              "list": "data.results",
+              "map": { "title": "name", "year": "year", "poster": "poster_path",
+                       "backdrop": "wide_path", "overview": "overview", "mediaType": "type" } } }
+```
+- **兜底定位**：内置 TMDB → 豆瓣 都未命中时才轮到它；**不抢占内置来源**。
+- 占位符：`{keyword}` / `{title}` / `{year}`；v1 **不提供评分**（`rating` 会被拒装）。
+- 海报为相对路径时用 `imageBase` 拼前缀；未配则丢弃该图（不产出坏图）。
+- 全量口径 / 自检 / 常见坑 → `references/meta-provider-reference.md`；骨架 → `assets/plugin.meta-provider.json`。
 
 ## runtimeDeps
 ```jsonc

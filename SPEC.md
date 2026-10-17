@@ -203,6 +203,34 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - 可直接安装的示例皮肤包：[`skills/winbox-plugin/assets/theme-sakura.winbox`](skills/winbox-plugin/assets/theme-sakura.winbox)
   （打包命令与自测三步见 [`skills/winbox-plugin/references/theme-reference.md`](skills/winbox-plugin/references/theme-reference.md) §6）。
 
+
+### 5.5 `meta.provider` 结构（**L2 声明式元数据源**，2026-10-18 已实装 asset 形）
+```jsonc
+{ "type": "meta.provider",
+  "id": "my-meta",                        // [a-z0-9-]{3,40}；不得占用内置来源 tmdb / douban
+  "name": "我的元数据站",
+  "imageBase": "https://img.example.com/t/p/w342",   // 可选：海报/横图为相对路径时的前缀
+  "search": {
+    "url": "https://api.example.com/search?q={keyword}&year={year}",
+    "headers": { "Referer": "https://api.example.com/" },      // 可选
+    "list": "data.results",               // 命中项：**数组**（取第一项）或**单个对象**
+    "map": { "title": "name", "year": "year", "poster": "poster_path",
+             "backdrop": "wide_path", "overview": "overview", "mediaType": "type" } } }
+```
+- ★ **定位 = 兜底**：宿主链路是 `TMDB（有用户 Key 时）→ 豆瓣 → ★ 插件源`；**内置命中时不走插件**，
+  调用方**显式指定来源**（`provider=tmdb|douban`）时也**不走插件**。同理不抢占、也**不写入内置 `meta.json` 查询缓存**
+  （避免停用插件后旧缓存仍命中）。
+- **v1 能力边界**与字幕源相同：仅 `GET`、仅 JSON 响应、无鉴权（POST / token / HTML → 用 L4）。
+- **占位符白名单**：`{keyword}` / `{title}`（等价，均传剧名）/ `{year}`；越界 → 拒装。
+- **命中字段**：`title`（必填）/ `year` / `poster` / `backdrop` / `overview` / `mediaType`
+  （值含 `tv`/`series`/`剧`/`集` → `tv`，否则 `movie`）。
+- ★ **v1 不提供评分**：宿主 UI 当前不展示评分 → 声明 `rating` 等未提供字段**拒不装**（不给假能力）。
+- **图片**：绝对 URL 原样用；相对路径拼 `imageBase`；**未声明 `imageBase` 的相对路径图直接丢弃**（绝不产出坏图）。
+- **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
+- **拒装原因码**：`META_PROVIDER_INVALID`（结构 / 字段越界）· `META_ID_TAKEN`（占用内置来源 id）·
+  `BAD_PROVIDER_URL`（协议 / 占位符 / imageBase / 请求头）· `BAD_PROVIDER_PATH`（JSON 路径语法）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `MetaProviderContribute` / `validateMetaProviderContribute` /
+  `RESERVED_META_IDS` / `META_PLACEHOLDERS` / `META_MAP_FIELDS`。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）
