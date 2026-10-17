@@ -32,7 +32,7 @@
 | `meta.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `discover.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `live.template` | asset | M2 | |
+| `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
 | `ui.command` | asset / code | M2 | |
@@ -107,6 +107,19 @@
 - 占位符按段白名单：`{keyword}/{season}` · `{animeId}/{title}` · `{episodeId}`；`comments.url` 必须含 `{episodeId}`。
 - 与内置外部接口**并列**参与检索；★ v1 **不进**播放器「弹幕源」面板的开关清单（要停用请在「配置 → 插件」停用该插件）。
 - 全量口径 / 自检 / 常见坑 → `references/danmaku-source-reference.md`；骨架 → `assets/plugin.danmaku-source.json`。
+
+## `live.template` 结构（L2 声明式**输出**模板，★ **不发请求**）
+```jsonc
+{ "type": "live.template", "id": "my-live-txt", "label": "标准 TXT", "format": "txt",
+  "group": "{group},#genre#", "line": "{name},{url}", "ext": "txt" }
+```
+- ★ 与前几个 provider **根本不同**：它**不取数、不发请求、不解析** —— 只把宿主**已解析**的直播频道
+  （分组 / 频道 / 线路）按你的格式串**格式化导出**成 TXT / M3U 文件（出口：直播页顶栏 + 配置页直播线路每行「导出」）。
+- 因此**没有** `url` / `headers` / `list` / `map`（写了即拒装）。
+- `format` ∈ `txt` | `m3u`（决定默认扩展名）；`line` **必须含 `{url}`**（允许 `\n` 让 m3u 的 EXTINF 与地址分两行）；
+  `group` / `header` 是单行；占位符仅 `{group}/{name}/{url}/{logo}/{tvgId}/{tvgName}/{tvgChno}/{index}`。
+- 一个插件可声明**多个**模板（各自独立 id）；宿主自带 2 个内置模板（`builtin:txt` / `builtin:m3u`）。
+- 全量口径 / 自检 / 常见坑 → `references/live-template-reference.md`；骨架 → `assets/plugin.live-template.json`。
 
 ## runtimeDeps
 ```jsonc

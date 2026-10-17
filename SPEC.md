@@ -296,6 +296,43 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **机器可读口径**：`src/shared/plugin.ts` 的 `DanmakuSourceContribute` / `DanmakuSearchSpec` / `DanmakuEpisodesSpec` /
   `validateDanmakuSourceContribute` / `DANMAKU_SEARCH_PLACEHOLDERS` / `DANMAKU_EPISODES_PLACEHOLDERS` /
   `DANMAKU_COMMENTS_PLACEHOLDERS` / `DANMAKU_ANIME_MAP_FIELDS` / `DANMAKU_EPISODE_MAP_FIELDS`。
+
+### 5.8 `live.template` 结构（**L2 声明式直播输出模板**，2026-10-18 已实装 asset 形）
+
+> ★ 与前四个 provider（§5.4~§5.7）**形态根本不同**：本节类型**不发网络请求、不取数、不解析规则**。
+> 它只把宿主**已经解析好的**直播频道（分组 / 频道 / 线路）按你的「每行格式串」**格式化输出**成文本文件（TXT / M3U）。
+> ★ 明确红线：宿主**不解析**任何直播订阅格式（那是引擎的 1:1 复刻行为，见 §1.1 红线③）；插件**只做输出侧格式化**。
+
+```jsonc
+{ "type": "live.template",
+  "id": "my-live-txt",          // [a-z0-9-]{3,40}；同一插件可声明**多个**模板（各自独立 id）
+  "label": "标准 TXT",           // 导出面板里的选项名
+  "format": "txt",              // txt | m3u（决定语义与**默认扩展名**）
+  "group": "{group},#genre#",   // 可选：分组行模板（**不得含 {url}**、须单行）
+  "header": ["#EXTM3U"],        // 可选：文件头，**逐行**（每项须单行）
+  "line": "{name},{url}",       // ★ 必填：频道行模板（**必须含 {url}**；允许 \n 表达多行）
+  "ext": "txt"                  // 可选：扩展名（不带点，[a-z0-9]{1,8}）；缺省 txt→txt / m3u→m3u }
+```
+
+- **没有 `url` / `headers` / `list` / `map`** —— 这不是数据源，写了即拒装。
+- **占位符白名单**（分组行与频道行共用）：
+  `{group}`（分组名）· `{name}`（频道名）· `{url}`（该行线路地址）· `{logo}` · `{tvgId}` / `{tvgName}` / `{tvgChno}` ·
+  `{index}`（频道序号，1 起；同频道多线路共用同一序号）。**越界 → 拒装**。
+- **渲染规则**：先输出 `header` 各项 → 逐分组（**无频道的分组整组不输出**）→ 组内逐频道（**无地址的频道不输出**）→
+  该频道**每条地址**各渲染一次 `line`。行连接符 `\r\n`，末尾补一个。
+- **★ 一个频道多条线路**：每线路各输出一行（同一频道名重复出现）；`{index}` 不变。
+- **生效位置 = 直播页顶栏「导出」+ 配置页「直播线路」每行「导出」**：用户选模板 → 宿主把**当前/该条线路**的频道
+  导出到保存对话框选定的**新文件**（绝不改动任何原始文件）。
+- ★ **内置兜底**：无插件时宿主自带 2 个模板（`builtin:txt` = TVBox 惯用 `分组,#genre#` + `名称,url`；`builtin:m3u` = `#EXTM3U` + EXTINF）；
+  插件模板**追加**在其后，同 id 去重（内置先占）。
+- **拒装原因码**：`LIVE_TEMPLATE_INVALID`（结构 / 字段 / `format` / 占位符越界 / `group` 含 `{url}` / `header` / `ext`）·
+  `BAD_LIVE_TEMPLATE_LINE`（`line` 为空、缺 `{url}`、含空行）。
+  > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不发请求、不取 JSON）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `LiveTemplateContribute` / `validateLiveTemplateContribute` /
+  `liveTemplateContributeOf` / `LIVE_TEMPLATE_PLACEHOLDERS` / `LIVE_TEMPLATE_FORMATS` / `liveTemplateExt` / `LiveTemplateView`；
+  适配层 `src/main/plugin/pluginLiveTemplate.ts`（`liveTemplateFromContribute` / `builtinLiveTemplates`）；
+  宿主 `PluginHost.liveTemplates()` → `SpiderHost.liveTemplates()` / `SpiderHost.renderLiveExport()`。
+- **AI skill 侧**：`references/live-template-reference.md` + 骨架 `assets/plugin.live-template.json` + `checks.md` §2.7。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

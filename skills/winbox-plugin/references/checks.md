@@ -98,6 +98,18 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] `headers` 无 `Host`/`Content-Length`/`Connection`/`Transfer-Encoding`，值里无换行
 - [ ] **真机三步**：装 → 播放器「弹幕源」搜到该源命中的番剧（来源名 = `name`）→ 选剧集能出弹幕 → 停用后该源消失
 
+## 2.7 直播输出模板（`type:"live.template"`）—— 逐条核对
+> ★ **本类型不发请求、不解析**（只把宿主已解析的频道格式化输出）：`references/live-template-reference.md`；规范 §5.8。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] **没有任何 `url`/`headers`/`list`/`map`**（这是「输出模板」，不是数据源 provider）
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`（同插件可声明多个模板，id 各自不重复）；`label` 非空
+- [ ] `format` ∈ `txt` / `m3u`
+- [ ] **`line` 含 `{url}`**；`line`、`group`、`header` 各项**无 `\r`、无空行**；`group`/`header` 是单行
+- [ ] `group` 里**不含 `{url}`**
+- [ ] 占位符都在白名单内：`{group}` `{name}` `{url}` `{logo}` `{tvgId}` `{tvgName}` `{tvgChno}` `{index}`
+- [ ] `ext`（若写）为 `[a-z0-9]{1,8}`、不带点
+- [ ] **真机两步**：装 → 「配置 → 直播线路」某行「导出」能选到你的模板并写出文件 → 停用后模板消失（内置 2 个不受影响）
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -110,6 +122,8 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 元数据源专属（规范 §5.5）：`META_PROVIDER_INVALID` · `META_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 发现页数据源专属（规范 §5.6）：`DISCOVER_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 弹幕源专属（规范 §5.7）：`DANMAKU_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
+直播输出模板专属（规范 §5.8）：`LIVE_TEMPLATE_INVALID` · `BAD_LIVE_TEMPLATE_LINE`
+> ★ 直播输出模板**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH` —— 它不发请求、不取 JSON。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell
@@ -126,3 +140,4 @@ Rename-Item out.zip <id>.winbox
   可直接对照归档的发布产物示例 **`assets/theme-sakura.winbox`**（见 `references/theme-reference.md` §6；含自测三步）。
 - ★ **四个声明式 provider（`subtitle.provider` / `meta.provider` / `discover.source` / `danmaku.source`）同理**：声明式、**无代码、无 `files/`**，
   包内只有 `plugin.json` + `LICENSE`（作者自建的公开 JSON 接口不需要随包任何资源）。
+- ★ **直播输出模板（`live.template`）也一样**：声明式、**无代码、无 `files/`**，包内只有 `plugin.json` + `LICENSE`（它连接口都没有）。
