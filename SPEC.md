@@ -170,7 +170,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
   "tokens": { "--accent": "#e879a6", "--surface-0": "#120d12" },
   "layout": { "nav": "top", "density": "comfy" } }
 ```
-- **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 见 **§11**（机器可读口径 = `src/shared/plugin.ts` 的 `THEME_TOKENS` / `validateThemeContribute`）。
+- **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 见 **§15**（机器可读口径 = `src/shared/plugin.ts` 的 `THEME_TOKENS` / `validateThemeContribute`）。
 - ★ **v1 不允许任何 CSS**：`tokens` 只能取词表内的令牌名；出现词表外的名字（含 `--nf-*` 一类自造前缀）或夹带 `style` / `.css` → 拒装。
 - 内置 4 套皮肤与插件皮肤**同一套契约**（内置皮肤同样只允许一段令牌声明）。
 - 可直接安装的示例皮肤包：[`skills/winbox-plugin/assets/theme-sakura.winbox`](skills/winbox-plugin/assets/theme-sakura.winbox)
@@ -301,7 +301,9 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 ---
 
-## 11. 皮肤与主题规范（`contributes[].type = "theme"`）
+---
+
+## 15. 皮肤与主题规范（`contributes[].type = "theme"`）
 
 > 适用范围：**内置皮肤**与**插件皮肤**共用同一套契约。
 > 插件侧 `contributes.theme` 的字段/白名单归 `SPEC.md` §5.3（本节定义它的**令牌词表与校验规则**）。
@@ -312,7 +314,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 ---
 
-### 11.1 四条红线
+### 15.1 四条红线
 
 1. **皮肤只能覆盖令牌**，不得写任何 CSS 选择器（v1）。皮肤 = 一份**令牌字典** + 一份**布局声明**。
 2. **禁止自造令牌名**（`--nf-*` / `--b-*` / `--ap-*` / `--db-*` 一律并入统一词表）；未知令牌名 → 拒。
@@ -323,11 +325,11 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 ---
 
-### 11.2 令牌词表 v1
+### 15.2 令牌词表 v1
 
 三列含义：**令牌** = 唯一合法名；**取代** = 现行散落的旧名（迁移时全部收敛到这里）；值类型/范围由校验器强制。
 
-#### 11.2.1 表面与层级
+#### 15.2.1 表面与层级
 
 | 令牌 | 语义 | 类型 | 范围 | 基线值 | 取代 |
 |---|---|---|---|---|---|
@@ -337,7 +339,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--surface-3` | 浮层 / 更高抬升 | color | — | `rgba(27,32,42,.82)` | `--bg-elev2`、`--nf-surface-2` |
 | `--surface-glass` | 玻璃层（窗口底，须含透明） | color | 需 alpha | `rgba(9,11,15,.9)` | `--bg-glass` |
 
-#### 11.2.2 品牌与强调
+#### 15.2.2 品牌与强调
 
 | 令牌 | 语义 | 类型 | 范围 | 基线 | 取代 |
 |---|---|---|---|---|---|
@@ -348,7 +350,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--on-accent` | **主色之上的前景色** | color | — | `#fff` | （新；网飝的白底按钮用 `#141414`） |
 | `--accent-2` | 副色 | color | — | `#63e6be` | `--accent-2`、`--nf-teal` |
 
-#### 11.2.3 文本
+#### 15.2.3 文本
 
 | 令牌 | 语义 | 类型 | 基线 | 取代 |
 |---|---|---|---|---|
@@ -356,7 +358,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--text-dim` | 次文本 | color | `#8a93a6` | `--nf-dim`、`--b-dim`、`--ap-dim`、`--b-text2` |
 | `--text-faint` | 三级 / 禁用文本 | color | = `--text-dim` | （新） |
 
-#### 11.2.4 分隔与语义色
+#### 15.2.4 分隔与语义色
 
 | 令牌 | 语义 | 类型 | 基线 | 取代 |
 |---|---|---|---|---|
@@ -368,7 +370,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--success` | 成功 | color | `#63e6be` | `--nf-green` |
 | `--info` | 信息 | color | = `--accent` | `--db-navy`、`--accent-2` |
 
-#### 11.2.5 形状与光影
+#### 15.2.5 形状与光影
 
 | 令牌 | 语义 | 类型 | 范围 | 基线 | 取代 |
 |---|---|---|---|---|---|
@@ -378,7 +380,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--shadow` | 基础阴影 | shadow | 受限语法 | `0 8px 24px rgba(0,0,0,.35)` | — |
 | `--shadow-lg` | 抬升阴影 | shadow | 受限语法 | = `--shadow` | `--db-card-shadow` |
 
-#### 11.2.6 动效（全皮肤共用节奏，皮肤只可微调）
+#### 15.2.6 动效（全皮肤共用节奏，皮肤只可微调）
 
 | 令牌 | 语义 | 类型 | 范围 | 取代 |
 |---|---|---|---|---|
@@ -392,7 +394,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `--dur-panel` | 面板 / 对话框 | time | 120–600ms | `--nf-dur-m`、`--b-dur-m`、`--ap-dur-m`、`--db-dur-m` |
 | `--dur-page` | 页面进场 | time | 120–800ms | `--db-dur-l` |
 
-#### 11.2.7 字级
+#### 15.2.7 字级
 
 | 令牌 | 语义 | 范围 | 基线 |
 |---|---|---|---|
@@ -400,7 +402,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 ---
 
-### 11.3 `layout` 声明（取代组件里的皮肤 id 分支）
+### 15.3 `layout` 声明（取代组件里的皮肤 id 分支）
 
 | 字段 | 取值 | 效果 | 取代 |
 |---|---|---|---|
@@ -432,23 +434,23 @@ Rename-Item super-resolution.zip super-resolution.winbox
 >
 > ⇒ 插件皮肤声明既有枚举即可复用宿主排版；要新增一种排版 = 先在组件里加枚举分支（宿主能力扩展）。
 > **插件皮肤无法越过宿主既有枚举** —— 这是「v1 不允许任意 CSS」的配套约束。
-> ⚠️ 落地顺序：结构类必须**先搬进 `global.css`**，插件皮肤声明枚举才有样式可用（见 §11.4 与 §11.7 验收）。
+> ⚠️ 落地顺序：结构类必须**先搬进 `global.css`**，插件皮肤声明枚举才有样式可用（见 §15.4 与 §15.7 验收）。
 
 组件只读 **令牌 + layout 声明**，不得再读皮肤 id。
 
 ---
 
-### 11.4 皮肤形态与装配
+### 15.4 皮肤形态与装配
 
-#### 11.4.1 内置皮肤
+#### 15.4.1 内置皮肤
 - 文件：`renderer/styles/<skin>.css`，**只允许存在一段** `:root[data-theme='<skin>'] { <令牌>: <值>; … }`。
 - 其余结构样式（布局、滚动条、组件骨架）**全部回到 `global.css`**，宿主把它们按 `data-shell` / `data-detail` /
-  `data-discover` / `data-filter` / `data-base` 作用域（见 §11.3 的属性表），由令牌与 layout 声明驱动。
+  `data-discover` / `data-filter` / `data-base` 作用域（见 §15.3 的属性表），由令牌与 layout 声明驱动。
 - 迁移后每个皮肤文件的预期体量：**≤ 60 行**（现状 616–1114 行 → 迁移后 36–39 行）。
 - 静态自检（可脚本化）：皮肤文件里出现 **任何选择器**（除那一段 `:root[data-theme=…]`）、`--nf-`/`--b-`/`--ap-`/`--db-` 前缀、
   或词表外的自定义属性 → 视为不合规。
 
-#### 11.4.2 插件皮肤
+#### 15.4.2 插件皮肤
 ```jsonc
 { "type": "theme",
   "id": "sakura",                 // [a-z0-9-]{3,40}；生效值 = data-theme='plugin:sakura'
@@ -460,7 +462,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - 装配：`PluginHost` 读 `contributes.theme` → IPC 下发 → 渲染层把 `tokens` 写成 `:root[data-theme='plugin:<id>']` 的 CSS 变量（运行时注入 `<style>`）。
 - `base` 决定回落基线的取哪一份（深色基线 / 亮色基线），未覆盖的令牌不回落到别的皮肤。
 
-#### 11.4.3 皮肤注册表
+#### 15.4.3 皮肤注册表
 `renderer/lib/themeTokens.ts` 的 `Theme` **从写死的联合类型改为动态注册表**：
 ```ts
 interface SkinEntry { id: string; label: string; kind: 'builtin' | 'plugin'; base: 'dark' | 'light'; layout: SkinLayout }
@@ -471,7 +473,7 @@ interface SkinEntry { id: string; label: string; kind: 'builtin' | 'plugin'; bas
 
 ---
 
-### 11.5 校验规则（拒装原因码）
+### 15.5 校验规则（拒装原因码）
 
 | 原因码 | 触发 |
 |---|---|
@@ -486,7 +488,7 @@ interface SkinEntry { id: string; label: string; kind: 'builtin' | 'plugin'; bas
 
 ---
 
-### 11.6 迁移映射（4 套内置皮肤）
+### 15.6 迁移映射（4 套内置皮肤）
 
 | 皮肤 | 需并入统一词表的私有令牌 | 需收敛的硬编码颜色（实测） |
 |---|---|---|
@@ -499,16 +501,16 @@ interface SkinEntry { id: string; label: string; kind: 'builtin' | 'plugin'; bas
 
 ---
 
-### 11.7 验收口径
+### 15.7 验收口径
 
-1. **静态**：4 套内置皮肤 + 插件皮肤样例均满足 §11.5 的自检（脚本扫描，0 违规）。
+1. **静态**：4 套内置皮肤 + 插件皮肤样例均满足 §15.5 的自检（脚本扫描，0 违规）。
 2. **动态（CDP 探针，逐皮肤）**：切换皮肤后断言关键盒子与状态——控制条图标按钮 26×26、控制条占宽一致、`.tag` 选中态可见、浮层不遮挡（沿用既有 `.tmp/player-ui-verify.cjs` 口径并扩充到 4 皮肤）。
 3. **回归**：双 `tsc` 0 错误；`vitest` 全绿（含新增 `themeTokens` / `validateThemeContribute` 用例）。
 4. **插件链路**：装一个 `theme` 插件 → 设置页出现该皮肤 → 选中即时生效 → 卸载回落默认皮肤，全程无组件代码改动。
 
 ---
 
-### 11.8 明确不做（v2 才议）
+### 15.8 明确不做（v2 才议）
 
 - 受限样式表白名单（结构改造能力）；
 - 皮肤继承/叠加（`extends`）；
