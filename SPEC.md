@@ -456,6 +456,51 @@ Rename-Item super-resolution.zip super-resolution.winbox
   适配层 `src/main/plugin/pluginSettingsPanel.ts`（`settingsPanelFromContribute`）；宿主 `PluginHost.settingsPanels()` / `setPluginSetting()` → IPC `plugin:settings` / `plugin:settings:set`；
   ★ 持久化 = `PluginHost` 的设置 JsonStore（`<userData>/plugin-settings.json`）；表单渲染与写回 = **渲染层**（`ConfigPage`）。
 - **AI skill 侧**：`references/settings-panel-reference.md` + 骨架 `assets/plugin.settings-panel.json` + `checks.md` §2.10。
+
+### 5.12 `ui.slot` 结构（**L3 声明式受限 UI 槽位**，2026-10-18 已实装 asset 形）
+> ★ 插件**不跑代码、不注入任何 UI**（红线②：不做任意 React 组件注入）—— 只声明一棵**受限组件树**（6 类组件），
+> 宿主把它渲染进**宿主既有页面的槽位**里（宿主样式、宿主交互）。★ 无插件声明该槽位时，宿主页面**零变化**。
+> ★ `link` 组件**复用 §5.9 的动作词表**（与 `ui.command` / `keymap` 同一套），由渲染层同一执行器执行。
+
+```jsonc
+{ "type": "ui.slot",
+  "id": "discover-tip",              // [a-z0-9-]{3,40}；同一插件可声明**多个**槽位（各自独立 id）
+  "slot": ["discover", "home"],       // 目标槽位，≥1：discover / home / detail / live / history / favorites
+  "label": "插件推荐位",               // 可选：内容区小标题（1~40 字，不含换行）
+  "title": "由插件提供的推荐位",        // 可选：悬停提示（≤120 字）
+  "items": [                          // 组件树：≥1、≤24
+    { "type": "heading", "text": "本周精选" },
+    { "type": "text", "text": "第一行\n第二行" },
+    { "type": "image", "url": "https://example.com/a.png", "alt": "示例图" },
+    { "type": "divider" },
+    { "type": "kv", "items": [ { "label": "来源", "value": "插件" } ] },
+    { "type": "link", "label": "打开帮助", "action": "open-url", "url": "https://example.com/help" }
+  ] }
+```
+
+**受限组件词表（★ 只能选这 6 类，不能自己写控件 / 注入 HTML）**：
+
+| `type` | 必填 / 可选字段 | 宿主渲染 |
+|---|---|---|
+| `heading` | `text` 必填（1~80 字，**不含换行**） | 小标题（宿主字体 / 字重） |
+| `text` | `text` 必填（1~500 字，**可含换行**） | 段落（保留换行） |
+| `image` | `url` 必填（**仅 http/https**）、`alt?`（≤80 字） | 图片（**一律走宿主 `/img` 中继**） |
+| `divider` | 无 | 分隔线 |
+| `kv` | `items` 必填：1~12 行 `{ label(1~40), value(1~200) }` | 键值行列表 |
+| `link` | `label` 必填（1~40 字）+ `action` 必填（**复用 §5.9 词表**，参数规则同 §5.9） | 按钮（点按走宿主动作执行器） |
+
+- ★ **参数必须与类型匹配** —— `heading` 带 `url`、`divider` 带 `text`、`image` 带 `label`、`kv` 缺 `items` **一律拒装**（同 §5.9~§5.11 口径）。
+- **槽位 `slot`**：`discover`（发现页）/ `home`（点播页）/ `detail`（详情页）/ `live`（直播页）/ `history`（观看历史）/ `favorites`（我的收藏）；
+  非空数组、不重复；★ 渲染层在每个页面的**内容区顶部**追加（`<PluginSlot slot="…" />`）。
+- **生效位置**：对应宿主页面的**内容区顶部**（一插件可同时投多个槽位；同 id 先到先得）。
+- **拒装原因码**：`UI_SLOT_INVALID`（结构 / 字段 / 组件类型白名单 / **参数与类型不匹配** / `slot` 白名单 / `items` 数量 / 文本与 kv 行边界 / `link` 的 label 与动作参数）·
+  `BAD_UI_SLOT_URL`（`image.url` 或 `link(open-url).url` 非 http(s) 或含空白）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `UiSlotContribute` / `UiSlotItem` / `UiSlotItemType` / `UiSlotKvItem` /
+  `UI_SLOT_IDS` / `UI_SLOT_ITEM_TYPES` / `validateUiSlotContribute` / `uiSlotContributeOf` / `UiSlotView` / `UiSlotItemView`；
+  适配层 `src/main/plugin/pluginUiSlot.ts`（`uiSlotFromContribute`）；宿主 `PluginHost.uiSlots()` → IPC `plugin:slots`；
+  **渲染器** `src/renderer/components/PluginSlot.tsx`（+ `src/renderer/lib/pluginSlots.ts` 的 `slotsFor`）；
+  `link` 的动作执行**复用** `src/renderer/lib/pluginCommands.ts`（`runPluginCommand`）。
+- **AI skill 侧**：`references/ui-slot-reference.md` + 骨架 `assets/plugin.ui-slot.json` + `checks.md` §2.11。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

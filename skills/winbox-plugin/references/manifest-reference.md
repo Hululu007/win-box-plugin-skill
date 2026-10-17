@@ -34,7 +34,7 @@
 | `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
-| `ui.slot` | asset | M2 | |
+| `ui.slot` | asset | M2 | ✅（asset 受限 UI 槽位；6 类受限组件，`link` 复用动作词表） |
 | `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；code 形待 L4） |
 | `keymap` | asset | M2 | ✅（asset 追加快捷键；动作复用 `ui.command` 词表） |
 | `settings.panel` | asset | M2 | ✅（asset 设置面板；宿主渲染 + 代持久化，读取面待 L4） |
@@ -161,6 +161,21 @@
 - 值由宿主按 `pluginId → panelId → fieldKey` 存 `<userData>/plugin-settings.json`；读回时存值合法则用存值、否则回落 `default`。
 - 展示在**配置 → 插件**页每个插件卡片内；★ **值的读取面留给 L4**（`kind:"code"` + `settings` 权限）；卸载**不清理**值。
 - 全量口径 / 自检 / 常见坑 → `references/settings-panel-reference.md`；骨架 → `assets/plugin.settings-panel.json`。
+
+## `ui.slot` 结构（L3 **受限 UI 槽位**，★ 6 类受限组件，宿主渲染）
+```jsonc
+{ "type": "ui.slot", "id": "discover-tip", "slot": ["discover", "home"],
+  "items": [ { "type": "heading", "text": "本周精选" },
+             { "type": "link", "label": "打开帮助", "action": "open-url", "url": "https://example.com/help" } ] }
+```
+- 槽位 `slot`（非空数组 ∈ 6 个）：`discover` / `home` / `detail` / `live` / `history` / `favorites`；
+  ★ 渲染位置 = 对应页面**内容区顶部**；无插件声明该槽位时**页面零变化**。
+- ★ 组件是**受限词汇表**（只 6 类，不能自己写控件 / 注入 HTML）：`heading`(text ≤80 不含换行) · `text`(text ≤500 可换行) ·
+  `image`(`url` 仅 http/https + `alt?`) · `divider` · `kv`(`items` 1~12 行 `{label,value}`) ·
+  `link`(`label` + `action` **复用 §5.9 词表**，参数规则同 §5.9)。
+- ★ **参数必须与类型匹配**（`heading` 带 `url`、`divider` 带 `text`、`kv` 缺 `items` → 拒装）；`items` 1~24。
+- 图片一律走宿主 `/img` 中继；★ 内容与页面数据**无关**（要动态逻辑 → L4）。
+- 全量口径 / 自检 / 常见坑 → `references/ui-slot-reference.md`；骨架 → `assets/plugin.ui-slot.json`。
 
 ## runtimeDeps
 ```jsonc

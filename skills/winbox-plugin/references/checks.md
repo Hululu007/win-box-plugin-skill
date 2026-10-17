@@ -144,6 +144,17 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] **只带该类型自己的参数**（`toggle` 带 `options`、`text` 带 `min` → 拒装）；顶层**无多余字段**
 - [ ] **真机两步**：装 → 「配置 → 插件」该插件卡片内出现表单 → 改一个字段后**重开软件值仍在**（已落盘）→ 停用后面板消失
 
+## 2.11 受限 UI 槽位（`type:"ui.slot"`）—— 逐条核对
+> ★ **只声明「槽位 + 受限组件树」**（插件不跑代码、不注入 UI；6 类组件，`link` 复用 §5.9 词表）：`references/ui-slot-reference.md`；规范 §5.12。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`（同插件可声明多个槽位，id 各自不重复）；`label` 非空且 ≤40 字
+- [ ] `slot` 非空数组、每项 ∈ `discover` / `home` / `detail` / `live` / `history` / `favorites`、不重复
+- [ ] `items` 1~24 项；每项 `type` ∈ `heading` / `text` / `image` / `divider` / `kv` / `link`；**只带该类型自己的字段**
+- [ ] `heading` 的 `text` 不含换行且 ≤80；`text` 的 `text` ≤500；`image` 的 `url` 为 `http(s)://`；`kv` 的 `items` 1~12 行且每行有 `label`/`value`
+- [ ] `link` 有 `label` 与 `action`，且**动作参数与动作匹配**（`open-url`→`url`；`navigate`→`to`(+`section`)；`export-live`→`template?`；`set-theme`→`theme`）
+- [ ] 顶层**无多余字段**（`html` / `script` / `style` 一律拒装）
+- [ ] **真机两步**：装 → 打开对应页面 ⇒ 内容区顶部出现插件内容 → 停用后页面**恢复原样（零残留）**
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -164,6 +175,8 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 > ★ 它同样**不取数、不跑代码**，动作词表与 §5.9 相同；键位缺修饰键 / 主键越界 → `BAD_KEYMAP_KEY`。
 插件设置面板专属（规范 §5.11）：`SETTINGS_PANEL_INVALID` · `BAD_SETTINGS_DEFAULT`
 > ★ 它**不取数、不跑代码**：宿主渲染表单并**代持久化**；参数与类型不匹配 → INVALID，`default` 与类型不符 → `BAD_SETTINGS_DEFAULT`。
+受限 UI 槽位专属（规范 §5.12）：`UI_SLOT_INVALID` · `BAD_UI_SLOT_URL`
+> ★ 它**不取数、不跑代码**：只声明受限组件树；参数与类型不匹配 / `slot` 越界 → INVALID，`image`·`link` 的 url 非 http(s) → URL。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell
