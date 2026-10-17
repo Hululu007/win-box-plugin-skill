@@ -45,6 +45,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      同上仅 `GET` + JSON。★ 它是**增补**：分区**追加**在发现页内置榜单**之后**（同 id 被忽略）；
      `map` **不含 `doubanId`**（会错配豆瓣剧照）；图片一律由宿主包 `/img` 中继，你只写原始地址。
      结构 / 自检 / 常见坑 → `references/discover-source-reference.md`；骨架 → `assets/plugin.discover-source.json`。
+   - 要**弹幕源** → `contributes:[{type:"danmaku.source", id, name, search:{…}, episodes:{…}, comments:{…}}]`：
+     ★ **三步链路缺一不可**（搜番剧 → 剧集列表 → 弹幕 XML）；三段 URL 各用占位符（`{keyword}/{season}`、`{animeId}/{title}`、`{episodeId}`）。
+     ★ `comments` **只收 XML**（B 站格式；无 `list`/`map`）—— 只给 JSON 弹幕的接口本期做不了，需 L4。
+     结构 / 自检 / 常见坑 → `references/danmaku-source-reference.md`；骨架 → `assets/plugin.danmaku-source.json`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -63,5 +67,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - **字幕源（subtitle.provider）参考**：`references/subtitle-provider-reference.md`（结构 + 占位符 + JSON 路径 + 自检 + 常见坑）
 - **元数据源（meta.provider）参考**：`references/meta-provider-reference.md`（结构 + 兜底定位 + imageBase + 自检 + 常见坑）
 - **发现页数据源（discover.source）参考**：`references/discover-source-reference.md`（分区结构 + 增补定位 + /img 中继 + 自检 + 常见坑）
+- **弹幕源（danmaku.source）参考**：`references/danmaku-source-reference.md`（三步链路 + 按段占位符 + 只收 XML + 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
-- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

@@ -262,6 +262,40 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **拒装原因码**：`DISCOVER_PROVIDER_INVALID`（结构 / 字段越界 / section 重名）· `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`。
 - **机器可读口径**：`src/shared/plugin.ts` 的 `DiscoverSourceContribute` / `DiscoverSectionContribute` /
   `validateDiscoverSourceContribute` / `DISCOVER_PLACEHOLDERS` / `DISCOVER_MAP_FIELDS`。
+
+### 5.7 `danmaku.source` 结构（**L2 声明式弹幕源**，2026-10-18 已实装 asset 形）
+> 弹幕是软件既有的**三步链路**：**① 搜番剧 → ② 取剧集列表 → ③ 按剧集 id 拉弹幕 XML**（内置外部接口即此形，见 `main/danmaku/logvarProvider.ts`）。
+> 声明式弹幕源把这三步**各声明一段受限模板**，三段之间由宿主用**合成 source 键** `plugin:<contributeId>` 路由。
+
+```jsonc
+{ "type": "danmaku.source",
+  "id": "my-danmaku",                      // [a-z0-9-]{3,40}
+  "name": "我的弹幕站",                     // 候选里标注来源用
+  "search":   { "url": "https://dm.example.com/api/search?keyword={keyword}&season={season}",
+                "headers": { "Referer": "https://dm.example.com/" },
+                "list": "animes",           // ★ 数组路径
+                "map": { "animeId": "animeId", "title": "animeTitle",   // animeId / title 必填
+                         "bangumiId": "bangumiId", "episodeCount": "episodeCount", "kind": "type" } },
+  "episodes": { "url": "https://dm.example.com/api/bangumi/{animeId}",
+                "list": "bangumi.episodes",
+                "map": { "episodeId": "episodeId",                      // 必填
+                         "episodeTitle": "episodeTitle", "episodeNumber": "episodeNumber" } },
+  "comments": { "url": "https://dm.example.com/api/comment/{episodeId}?format=xml" } }
+```
+- ★ **三段缺一不可**（缺任一段即拒装）：没有 `episodes` 就无法从番剧走到剧集，没有 `comments` 就拿不到弹幕。
+- ★ **`comments` 只收 XML 文本**（B 站弹幕格式，由宿主引擎解析器消费）——**没有 `list` / `map`**；
+  只给 JSON 弹幕的接口本期做不了（走 L4）。
+- **占位符按段各一套白名单**：`search` 用 `{keyword}` / `{season}`；`episodes` 用 `{animeId}` / `{title}`；`comments` 用 `{episodeId}`。
+  `comments.url` **必须含 `{episodeId}`**；越界 → 拒装。
+- **字段映射**：`search.map` 取 `animeId`（必填）/ `title`（必填）/ `bangumiId`（缺省用 `animeId`）/ `episodeCount` / `kind`；
+  `episodes.map` 取 `episodeId`（必填）/ `episodeTitle` / `episodeNumber`（1~4 位数字串）。
+- ★ **生效位置 = 与内置外部接口并列**：插件弹幕源一起并行检索、一起按匹配度排序、**共用同一套失败冷却**（失败只影响该源）。
+  ★ v1 **不进入**播放器「弹幕源」面板的接口开关清单 —— 要停用请在 **配置 → 插件** 停用该插件。
+- **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
+- **拒装原因码**：`DANMAKU_PROVIDER_INVALID`（结构 / 段缺失 / 字段越界）· `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `DanmakuSourceContribute` / `DanmakuSearchSpec` / `DanmakuEpisodesSpec` /
+  `validateDanmakuSourceContribute` / `DANMAKU_SEARCH_PLACEHOLDERS` / `DANMAKU_EPISODES_PLACEHOLDERS` /
+  `DANMAKU_COMMENTS_PLACEHOLDERS` / `DANMAKU_ANIME_MAP_FIELDS` / `DANMAKU_EPISODE_MAP_FIELDS`。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

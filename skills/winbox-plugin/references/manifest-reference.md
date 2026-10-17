@@ -31,7 +31,7 @@
 | `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `meta.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `discover.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `danmaku.source` | asset / code | M2 | |
+| `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `live.template` | asset | M2 | |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
@@ -93,6 +93,20 @@
 - 占位符只有 `{mediaType}`；`sections` ≥1、同插件内 `section.id` 不重复；空分区不显示。
 - **`map` 不含 `doubanId`**（会错配豆瓣剧照）；图片由宿主统一包 `/img` 中继（相对路径配 `imageBase`，未配则丢图）。
 - 全量口径 / 自检 / 常见坑 → `references/discover-source-reference.md`；骨架 → `assets/plugin.discover-source.json`。
+
+## `danmaku.source` 结构（L2 声明式弹幕源，**三步链路缺一不可**）
+```jsonc
+{ "type": "danmaku.source", "id": "my-danmaku", "name": "我的弹幕站",
+  "search":   { "url": "https://dm.example.com/api/search?keyword={keyword}&season={season}",
+                "list": "animes", "map": { "animeId": "animeId", "title": "animeTitle", "bangumiId": "bangumiId" } },
+  "episodes": { "url": "https://dm.example.com/api/bangumi/{animeId}",
+                "list": "bangumi.episodes", "map": { "episodeId": "episodeId", "episodeNumber": "episodeNumber" } },
+  "comments": { "url": "https://dm.example.com/api/comment/{episodeId}?format=xml" } }
+```
+- ① 搜番剧 → ② 取剧集 → ③ 拉弹幕 **XML**（`comments` 无 `list`/`map`，**只收 XML 文本**）。
+- 占位符按段白名单：`{keyword}/{season}` · `{animeId}/{title}` · `{episodeId}`；`comments.url` 必须含 `{episodeId}`。
+- 与内置外部接口**并列**参与检索；★ v1 **不进**播放器「弹幕源」面板的开关清单（要停用请在「配置 → 插件」停用该插件）。
+- 全量口径 / 自检 / 常见坑 → `references/danmaku-source-reference.md`；骨架 → `assets/plugin.danmaku-source.json`。
 
 ## runtimeDeps
 ```jsonc

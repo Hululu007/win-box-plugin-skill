@@ -86,6 +86,18 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] 相对路径海报已配 `imageBase`（未配则这张图被丢弃）
 - [ ] **真机三步**：装 → 发现页出现你的分区（在内置榜单**之后**）且图能出 → 停用后该分区消失
 
+## 2.6 弹幕源（`type:"danmaku.source"`）—— 逐条核对
+> 三步链路 / 按段占位符 / 只收 XML：`references/danmaku-source-reference.md`；规范 §5.7。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`；`name` 非空
+- [ ] **三段齐备**：`search` / `episodes` / `comments` 都在；每段 `url` 是 `http(s)://`
+- [ ] 占位符按段白名单：search 用 `{keyword}/{season}`、episodes 用 `{animeId}/{title}`、comments 用 `{episodeId}`
+- [ ] **`comments.url` 含 `{episodeId}`**（否则拒装）
+- [ ] `search.map.animeId`/`title`、`episodes.map.episodeId` 是合法点号路径；映射字段无越界
+- [ ] `comments` **没有** `list`/`map`（它只收 XML 文本）
+- [ ] `headers` 无 `Host`/`Content-Length`/`Connection`/`Transfer-Encoding`，值里无换行
+- [ ] **真机三步**：装 → 播放器「弹幕源」搜到该源命中的番剧（来源名 = `name`）→ 选剧集能出弹幕 → 停用后该源消失
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -97,6 +109,7 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 字幕源专属（规范 §5.4）：`SUBTITLE_PROVIDER_INVALID` · `SUBTITLE_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 元数据源专属（规范 §5.5）：`META_PROVIDER_INVALID` · `META_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 发现页数据源专属（规范 §5.6）：`DISCOVER_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
+弹幕源专属（规范 §5.7）：`DANMAKU_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 
 ## 5. 打包（PowerShell 示例）
 ```powershell
@@ -111,5 +124,5 @@ Rename-Item out.zip <id>.winbox
   **没有 `files/`、没有任何 `.css`**。照抄命令时把 `files` 去掉：
   `Compress-Archive -Path plugin.json, LICENSE -DestinationPath out.zip` → `Rename-Item out.zip <插件 id>.winbox`。
   可直接对照归档的发布产物示例 **`assets/theme-sakura.winbox`**（见 `references/theme-reference.md` §6；含自测三步）。
-- ★ **三个声明式 provider（`subtitle.provider` / `meta.provider` / `discover.source`）同理**：声明式、**无代码、无 `files/`**，
+- ★ **四个声明式 provider（`subtitle.provider` / `meta.provider` / `discover.source` / `danmaku.source`）同理**：声明式、**无代码、无 `files/`**，
   包内只有 `plugin.json` + `LICENSE`（作者自建的公开 JSON 接口不需要随包任何资源）。
