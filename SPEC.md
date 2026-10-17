@@ -231,6 +231,37 @@ Rename-Item super-resolution.zip super-resolution.winbox
   `BAD_PROVIDER_URL`（协议 / 占位符 / imageBase / 请求头）· `BAD_PROVIDER_PATH`（JSON 路径语法）。
 - **机器可读口径**：`src/shared/plugin.ts` 的 `MetaProviderContribute` / `validateMetaProviderContribute` /
   `RESERVED_META_IDS` / `META_PLACEHOLDERS` / `META_MAP_FIELDS`。
+
+### 5.6 `discover.source` 结构（**L2 声明式发现页数据源**，2026-10-18 已实装 asset 形）
+```jsonc
+{ "type": "discover.source",
+  "id": "my-discover", "name": "我的榜单",
+  "sections": [                            // ★ ≥1；顺序 = 发现页上的显示顺序
+    { "id": "my-top-movie",                // [a-z0-9-]{3,40}；同一插件内不得重复
+      "title": "我的电影热榜",              // 页面上这一行的标题
+      "mediaType": "movie",                // movie | tv（缺省 movie）
+      "url": "https://api.example.com/top?type={mediaType}&limit=20",
+      "headers": { "Referer": "https://api.example.com/" },
+      "list": "data.items",                // ★ 响应里**数组**所在的点号路径
+      "imageBase": "https://img.example.com/t/p/w342",
+      "map": { "title": "name", "year": "year", "poster": "poster_path",
+               "backdrop": "wide_path", "mediaType": "type", "tmdbId": "tmdb_id" } } ] }
+```
+- ★ **定位 = 增补**：插件分区**追加**在发现页内置榜单（TMDB / 豆瓣）**之后**；**内置分区先占 id**（同 id 的插件分区被忽略），
+  插件之间重复的分区也会被丢弃；内置榜单**整条失败**时插件分区**照样显示**（增补 ≠ 替代）。
+- **v1 能力边界**与前两者相同：仅 `GET`、仅 JSON 响应、无鉴权（POST / token / HTML → 用 L4）。
+- **占位符白名单**：**仅 `{mediaType}`**（展开为该 section 声明的 `mediaType`）；越界 → 拒装。
+- **`sections`**：≥1；`section.id` 同插件内不得重复；`title` 必填；`mediaType` 可选（缺省 `movie`，
+  也是条目未映射 `mediaType` 时的缺省）。
+- **字段白名单**：`title`（必填）/ `year` / `poster` / `backdrop` / `mediaType` / `tmdbId`。
+  ★ **不含 `doubanId`** —— 该字段会让宿主去取「豆瓣剧照」，插件源并非豆瓣 ⇒ 声明即拒装（避免图源错配）。
+- **图片口径**：插件给的 `poster` / `backdrop` **一律由宿主包成本地 `/img` 中继**（与内置榜单同口径：渲染层直连图床可能被 DNS 污染）；
+  值若为**相对路径**则先拼 `imageBase`，**未声明 `imageBase` 的相对图直接丢弃**（绝不产出坏图）。
+- **空分区不显示**：`list` 取到 0 条（或不是数组）时该分区不出现（不留空行）；单分区失败**只跳过该分区**。
+- **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
+- **拒装原因码**：`DISCOVER_PROVIDER_INVALID`（结构 / 字段越界 / section 重名）· `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `DiscoverSourceContribute` / `DiscoverSectionContribute` /
+  `validateDiscoverSourceContribute` / `DISCOVER_PLACEHOLDERS` / `DISCOVER_MAP_FIELDS`。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

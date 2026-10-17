@@ -74,6 +74,18 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] 相对路径海报已配 `imageBase`（不配则该图被丢弃，不会产出坏图）
 - [ ] **真机三步**：装 → 用一个内置查不到的片名走 `meta:search` 拿到该源的封面/简介 → 停用后回到内置行为
 
+## 2.5 发现页数据源（`type:"discover.source"`）—— 逐条核对
+> 分区结构 / 增补定位 / 图片中继口径：`references/discover-source-reference.md`；规范 §5.6。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `discover.source.id` 与每个 `section.id` 匹配 `[a-z0-9-]{3,40}`；**同插件内 section.id 不重复**
+- [ ] `sections` 非空；每个 section 有 `title`
+- [ ] `url`（与 `imageBase`，若声明）均为 `http(s)://`；占位符只用 `{mediaType}`
+- [ ] `list` 与 `map.title` 是合法点号路径；`map` 只含 `title/year/poster/backdrop/mediaType/tmdbId`
+- [ ] **没有** `doubanId`（宿主会去取豆瓣剧照 → 图源错配，声明即拒装）
+- [ ] `headers` 无 `Host`/`Content-Length`/`Connection`/`Transfer-Encoding`，值里无换行
+- [ ] 相对路径海报已配 `imageBase`（未配则这张图被丢弃）
+- [ ] **真机三步**：装 → 发现页出现你的分区（在内置榜单**之后**）且图能出 → 停用后该分区消失
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -84,6 +96,7 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 皮肤专属（规范 §5）：`THEME_TOKENS_REQUIRED` · `UNKNOWN_THEME_TOKEN` · `BAD_THEME_TOKEN_VALUE` · `THEME_STYLE_NOT_ALLOWED` · `BAD_THEME_LAYOUT` · `THEME_ID_TAKEN`
 字幕源专属（规范 §5.4）：`SUBTITLE_PROVIDER_INVALID` · `SUBTITLE_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 元数据源专属（规范 §5.5）：`META_PROVIDER_INVALID` · `META_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
+发现页数据源专属（规范 §5.6）：`DISCOVER_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 
 ## 5. 打包（PowerShell 示例）
 ```powershell
@@ -98,5 +111,5 @@ Rename-Item out.zip <id>.winbox
   **没有 `files/`、没有任何 `.css`**。照抄命令时把 `files` 去掉：
   `Compress-Archive -Path plugin.json, LICENSE -DestinationPath out.zip` → `Rename-Item out.zip <插件 id>.winbox`。
   可直接对照归档的发布产物示例 **`assets/theme-sakura.winbox`**（见 `references/theme-reference.md` §6；含自测三步）。
-- ★ **字幕源（`type:"subtitle.provider"`）与元数据源（`type:"meta.provider"`）同理**：声明式、**无代码、无 `files/`**，
+- ★ **三个声明式 provider（`subtitle.provider` / `meta.provider` / `discover.source`）同理**：声明式、**无代码、无 `files/`**，
   包内只有 `plugin.json` + `LICENSE`（作者自建的公开 JSON 接口不需要随包任何资源）。

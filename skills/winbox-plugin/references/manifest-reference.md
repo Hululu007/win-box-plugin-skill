@@ -30,7 +30,8 @@
 | `theme` | asset | M2 | ✅ |
 | `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `meta.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `danmaku.source` / `discover.source` | asset / code | M2 | |
+| `discover.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
+| `danmaku.source` | asset / code | M2 | |
 | `live.template` | asset | M2 | |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
@@ -76,6 +77,22 @@
 - 占位符：`{keyword}` / `{title}` / `{year}`；v1 **不提供评分**（`rating` 会被拒装）。
 - 海报为相对路径时用 `imageBase` 拼前缀；未配则丢弃该图（不产出坏图）。
 - 全量口径 / 自检 / 常见坑 → `references/meta-provider-reference.md`；骨架 → `assets/plugin.meta-provider.json`。
+
+## `discover.source` 结构（L2 声明式发现页数据源）
+```jsonc
+{ "type": "discover.source", "id": "my-discover", "name": "我的榜单",
+  "sections": [
+    { "id": "my-top-movie", "title": "我的电影热榜", "mediaType": "movie",
+      "url": "https://api.example.com/top?type={mediaType}",
+      "list": "data.items",
+      "imageBase": "https://img.example.com/t/p/w342",
+      "map": { "title": "name", "year": "year", "poster": "poster_path", "backdrop": "wide_path", "mediaType": "type", "tmdbId": "tmdb_id" } }
+  ] }
+```
+- **增补定位**：分区**追加**在发现页内置榜单**之后**；同 id 的分区被忽略。
+- 占位符只有 `{mediaType}`；`sections` ≥1、同插件内 `section.id` 不重复；空分区不显示。
+- **`map` 不含 `doubanId`**（会错配豆瓣剧照）；图片由宿主统一包 `/img` 中继（相对路径配 `imageBase`，未配则丢图）。
+- 全量口径 / 自检 / 常见坑 → `references/discover-source-reference.md`；骨架 → `assets/plugin.discover-source.json`。
 
 ## runtimeDeps
 ```jsonc
