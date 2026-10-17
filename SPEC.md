@@ -131,7 +131,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | type | 含义 | 允许 `kind` | 阶段 | 风险 | 宿主接线点 |
 |---|---|---|---|---|---|
 | `mpv.shaders` | MPV 着色器链（多档位） | `asset` | **M1** | 低 | `mpvCore.ts` 注入 |
-| `theme` | 皮肤（声明式令牌 / 样式表） | `asset` | M2 | 低 | `themeTokens` |
+| `theme` | 皮肤（**纯令牌 + 声明式 layout**，不含样式表） | `asset` | M2 | 低 | 见 §5.3 |
 | `danmaku.source` | 弹幕源 | `asset` / `code` | M2 | 低 | 弹幕聚合 |
 | `subtitle.provider` | 字幕源 | `asset` / `code` | M2 | 低 | 字幕 provider 注册表 |
 | `meta.provider` | 元数据源（海报 / 简介 / 评分） | `asset` / `code` | M2 | 中（出网） | 元数据 provider 注册表 |
@@ -160,6 +160,22 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - 用户可见档位由宿主统一渲染为 `off / <各 mode.label>`；多插件都提供 `mpv.shaders` 时以**用户选择**为准。
 
 > 宿主不认识 `contributes.type` → **忽略并告警**，不报错（前向兼容，便于宿主旧版跑新插件）。
+
+### 5.3 `theme` 结构（皮肤）
+```jsonc
+{ "type": "theme",
+  "id": "sakura",               // [a-z0-9-]{3,40}；生效值 = data-theme='plugin:sakura'
+  "label": "🌸 樱花",            // 设置页显示名
+  "base": "dark",               // dark | light（未覆盖令牌回落到该基底）
+  "tokens": { "--accent": "#e879a6", "--surface-0": "#120d12" },
+  "layout": { "nav": "top", "density": "comfy" } }
+```
+- **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 的**唯一权威**：
+  [`THEME.md`](THEME.md)（机器可读口径 = `src/shared/plugin.ts` 的 `THEME_TOKENS` / `validateThemeContribute`）。
+- ★ **v1 不允许任何 CSS**：`tokens` 只能取词表内的令牌名；出现词表外的名字（含 `--nf-*` 一类自造前缀）或夹带 `style` / `.css` → 拒装。
+- 内置 4 套皮肤与插件皮肤**同一套契约**（内置皮肤同样只允许一段令牌声明）。
+- 可直接安装的示例皮肤包：[`skills/winbox-plugin/assets/theme-sakura.winbox`](skills/winbox-plugin/assets/theme-sakura.winbox)
+  （打包命令与自测三步见 [`skills/winbox-plugin/references/theme-reference.md`](skills/winbox-plugin/references/theme-reference.md) §6）。
 
 ---
 

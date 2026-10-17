@@ -9,7 +9,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 
 ## 冷启动（先读这两页）
 1. `references/host-overview.md` —— **宿主速览**（Win-Box 是什么 / 双内核与 GLSL 只作用 MPV / M1 白名单 / 插件在 UI 何处出现）。**冷启动必读**，补齐项目背景常识。
-2. `SPEC.md`（仓库根）—— **规范**：字段 / 白名单 / 校验的唯一权威。
+2. `SPEC.md`（仓库根）—— **规范**：字段 / 白名单 / 校验的唯一权威；皮肤专项口径（令牌词表 / 布局枚举）见 `THEME.md`（仓库根）。
 
 > 你的产出**不得与规范冲突**；若发现冲突，**以规范为准**，并提醒用户更新规范。
 > 需要核对白名单 / 宿主实现时才**定向**看主仓（`github.com/yagami-hue/Win-box`；M1 后看 `src/shared/plugin.ts`）——**不要通读整个仓库**。
@@ -29,6 +29,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 3. **放资源**：资源进 `files/`；要 mpv 档位 → `contributes:[{type:"mpv.shaders", modes:[…]}]`（**顺序即生效顺序**）。
    - `modes[].shaders` 里的名字必须与 `files/` 里**实际文件同名**（`.glsl` / `.hook` 都行，mpv 不看扩展名）；**别照抄占位名**。
    - 着色器资源多为**第三方上游项目**：随包了第三方资源就要在 `licenses/` 归档其许可原文（copyleft 必做，见规范 §3）。
+   - 要**皮肤** → `contributes:[{type:"theme", id, label, base, tokens, layout}]`：
+     皮肤 = **令牌字典 + 布局声明**，**绝对不写任何 CSS / 选择器 / `.css` 文件**（v1 硬约束）。
+     词表（39 项）/ 布局枚举 / `base` 口径 / 自检清单 / **可安装的发布产物示例** → `references/theme-reference.md`；
+     骨架 → `assets/plugin.theme.json`；示例 `.winbox` → `assets/theme-sakura.winbox`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -43,5 +47,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 ## 参考
 - 宿主速览（冷启动必读）：`references/host-overview.md`
 - 字段与白名单速查：`references/manifest-reference.md`
+- **皮肤（theme）参考**：`references/theme-reference.md`（令牌词表 + 布局枚举 + 自检 + **发布产物示例与自测三步**）
 - 发布前校验清单：`references/checks.md`
-- 骨架与完整示例：`assets/`
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
