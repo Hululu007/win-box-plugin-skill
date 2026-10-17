@@ -18,13 +18,17 @@
   **`keymap`**（追加快捷键，**L3**：`app`=主窗口 / `player`=播放器窗口；★ 动作**复用** `ui.command` 词表，键位强制含 Ctrl/Alt/Meta）；
   **`settings.panel`**（插件设置面板，**L3**：宿主按**受限词汇表**渲染表单 + **代持久化**值；★ 值的读取面已由 **L4 的 `winbox.settings`** 提供）；
   **`ui.slot`**（受限 UI 槽位，**L3**：往宿主页面（发现/点播/详情/直播/历史/收藏）内容区顶部追加**受限组件树**，`link` 复用动作词表）；
-  **L4 沙箱**（`kind:"code"`：你的 `main.js` 在**独立 worker** 沙箱里跑，按 `permissions` 授权使用 `winbox.*`；未授权的 API **根本不存在**）→ `references/l4-sandbox-reference.md`；
-  其余（`player.engine` …）陆续接线。
+  **`player.engine`**（第三方播放内核，**`kind:"code"`、风险最高**：★ 你只给「引擎描述符」——协议 / 二进制来源 / 参数模板，
+  **宿主托管进程**（负责 `spawn` + `--wid` 嵌入 + 通信 + 状态推送），**插件永不拉进程**；
+  内核由**用户显式开启**（默认关 + 首次二次确认），**不参与「自动」**）→ `references/player-engine-reference.md`；
+  **L4 沙箱**（`kind:"code"`：你的 `main.js` 在**独立 worker** 沙箱里跑，按 `permissions` 授权使用 `winbox.*`；未授权的 API **根本不存在**）→ `references/l4-sandbox-reference.md`。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 
 ## 插件在软件里出现在哪
 - 管理界面：**配置 → 插件/组件**（安装 / 启用停用 / 移除 / 更新提示）。
 - `mpv.shaders` 的档位出现在 **MPV 内核**相关处（如播放器/配置中）。
+- `player.engine` 的内核出现在 **配置 → 播放 →「插件播放内核」**（开关 + 状态；`local-path` 来源另给路径输入框），
+  以及**播放器控制条的内核列表**（可选内核 > 2 时按钮变列表）。
 
 ## 需要更多细节时（**定向**，别通读）
 - 宿主开源主仓：https://github.com/yagami-hue/Win-box

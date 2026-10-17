@@ -33,7 +33,7 @@
 | `discover.source` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
 | `danmaku.source` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
-| `player.engine` | code | M2（风险高，需显式授权） | |
+| `player.engine` | code | M2（风险高，需显式授权） | ✅（★ 宿主托管进程：插件只给描述符，**永不拉进程**；默认关 + 首次开启二次确认） |
 | `ui.slot` | asset | M2 | ✅（asset 受限 UI 槽位；6 类受限组件，`link` 复用动作词表） |
 | `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；★ code 形待后续） |
 | `keymap` | asset | M2 | ✅（asset 追加快捷键；动作复用 `ui.command` 词表） |
@@ -179,8 +179,30 @@
 - 图片一律走宿主 `/img` 中继；★ 内容与页面数据**无关**（要动态逻辑 → L4）。
 - 全量口径 / 自检 / 常见坑 → `references/ui-slot-reference.md`；骨架 → `assets/plugin.ui-slot.json`。
 
+## `player.engine` 结构（第三方播放内核，★ **宿主托管进程**；只可能 `kind:"code"`）
+```jsonc
+{ "type": "player.engine", "id": "my-mpv", "label": "我的 MPV", "protocol": "mpv-ipc",
+  "binary": { "source": "plugin-file", "file": "files/mpv.exe" },
+  "args": ["--no-config", "--wid={wid}", "--input-ipc-server={pipe}", "{url}", "--start={start}"],
+  "capabilities": ["seek", "rate", "tracks", "subtitle", "fit"] }
+```
+- ★ 插件**只给「引擎描述符」**（协议 / 二进制来源 / 参数模板），**宿主**负责 `spawn` + `--wid` 嵌入 + 协议通信 + 状态推送；
+  ★ 插件**永不拉进程**（`spawn` / `child_process` 是永久禁止项）。清单须 `kind:"code"` + `main` + 非空 `permissions`（描述符型通常只写 `["log"]`）。
+- **协议族两个**：`mpv-ipc`（复用 mpv 的 `--input-ipc-server` JSON IPC；必需 `{wid}` `{url}` **`{pipe}`**）｜
+  `json-lines`（宿主定死的 stdin/stdout 一行一 JSON；必需 `{wid}` `{url}`，**不得**带 `{pipe}`）。
+- **占位符**（宿主展开）：`{wid}` / `{url}` / `{pipe}` / `{start}`（整数秒，≤0 不下发）/ `{volume}`（整数百分比 0~130）/
+  `{rate}`（浮点）/ `{fit}`（`contain`/`fill`/`cover`/`r169`/`r43`/`none`）。
+  ★ **exe 路径不在 `args` 里**（由 `binary` 决定）；★ **可选占位符无值时该参数项整项丢弃**。
+- **二进制来源**：`plugin-file`（随包自带，`file` 必须是包内**安全相对名**）｜ `local-path`（用户在「配置 → 播放 → 插件播放内核」填路径，对位 `mpvPath`）。
+  ★ v1 **不能用 `runtimeDeps` 分发二进制**（无下载装配管线）。
+- **授权**：**默认关**；配置页单独开关 + **首次开启二次确认**；未启用时 `engine:start` 被明确拒绝。
+  ★ 用户显式选才生效（**插件内核不参与「自动」**）；起播失败会**明确报错并回落内置 HTML5**。
+- 全量口径（两协议**线格式**）/ 自检 / 常见坑 → `references/player-engine-reference.md`；骨架 → `assets/plugin.player-engine.json`。
+
 ## runtimeDeps
 ```jsonc
 "runtimeDeps": [ { "id": "anime4k-shaders", "files": ["Anime4K_Upscale_CNN_x2_M.glsl"] } ]
 ```
 - 小资源（<1MB）建议直接进 `files/` 随包；重运行库才走 `runtimeDeps`（**安装后**才下载）。
+- ★ **二进制（exe/dll）不走 `runtimeDeps`**（v1 无下载装配管线，且许可清单只有着色器文本资源）——
+  `player.engine` 的可执行文件请随包自带或让用户指定本机路径。

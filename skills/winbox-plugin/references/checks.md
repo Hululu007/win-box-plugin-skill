@@ -166,6 +166,23 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] `fs.*` 只用**插件内相对路径**；`openExternal` 只用 `http(s)://`
 - [ ] **真机**：装（会弹**权限确认**）→ 配置页可见 **沙箱运行中**；停用后沙箱停；日志里有 `plugin:<id>` 前缀输出
 
+## 2.13 第三方播放内核（`type:"player.engine"`）—— 逐条核对
+> ★ **风险最高的一类**：会让**宿主启动你提供的本机程序**（插件只给描述符，**永不拉进程**）：`references/player-engine-reference.md`；规范 §6.3。
+- [ ] `kind:"code"` + 有 `main` + `permissions` 非空（描述符型插件通常只写 `["log"]`）
+- [ ] `contributes[].type = "player.engine"`；**只写 §2 的那几个字段**（顶层多余字段一律拒装）
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`；`label` 1~40 字不含换行；`protocol` ∈ `mpv-ipc` / `json-lines`
+- [ ] `binary`：`plugin-file` 带**安全相对** `file`（无 `..` / 无盘符 / 无前导 `/`）；`local-path` **不带 `file`**（路径由用户在配置页填）
+- [ ] `args` 非空、≤24、每项无换行；占位符**全在白名单**（`{wid}` `{pipe}` `{url}` `{start}` `{volume}` `{fit}` `{rate}`）
+- [ ] ★ **按协议的必需 / 禁止占位符**：`mpv-ipc` 含 `{wid}` `{url}` **`{pipe}`**；`json-lines` 含 `{wid}` `{url}` 且**不含 `{pipe}`**
+- [ ] ★ **exe 路径不在 `args` 里**（由 `binary` 决定；宿主拼命令行）
+- [ ] ★ `mpv-ipc` 的**播放地址由 `{url}` 参数项承载**（宿主不会再替你 `loadfile`）——忘写 `{url}` 会被拒装
+- [ ] `capabilities`（若写）只含 `seek` / `rate` / `tracks` / `subtitle` / `fit`，不重复
+- [ ] 随包的 exe 真在 `files/` 里（`plugin-file` 来源；回读 zip 核对，见 §2.1）
+- [ ] ★ **不要用 `runtimeDeps` 分发二进制**（v1 无下载装配管线）；要么随包自带，要么 `local-path` 让用户指路径
+- [ ] **真机四步**：装（弹权限确认）→ 「配置 → 播放 → 插件播放内核」出现且状态=就绪（`local-path` 先填路径）→
+      打开开关（**首次有二次确认**）→ 播放器内核列表里选中它，画面真起且暂停/快进/音量/倍速/比例**状态回流对得上** →
+      关开关 / 停用插件后内核消失、**无孤儿进程**、失败时**明确报错并回落内置**（不黑屏不静默）
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -189,6 +206,12 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 受限 UI 槽位专属（规范 §5.12）：`UI_SLOT_INVALID` · `BAD_UI_SLOT_URL`
 > ★ 它**不取数、不跑代码**：只声明受限组件树；参数与类型不匹配 / `slot` 越界 → INVALID，`image`·`link` 的 url 非 http(s) → URL。
 
+第三方播放内核专属（规范 §6.3）：`PLAYER_ENGINE_INVALID` · `BAD_ENGINE_ARGS`
+> ★ **插件侧不取数、不跑代码**（只给描述符），但**宿主要替它启动本机程序** ⇒ 风险最高、默认关。
+> ★ `BAD_ENGINE_ARGS` = `args` 的**结构性**问题：非数组 / 空 / 超 24 项 / 含换行 / 空串 /
+>   占位符越界 / **缺协议必需占位符**（`mpv-ipc` 的 `{pipe}` 等）/ **`json-lines` 带了 `{pipe}`**。
+> ★ `PLAYER_ENGINE_INVALID` = 其余（`id`/`label`/`protocol`/`binary` 形态 / `capabilities` / 顶层未知字段）。
+
 L4 沙箱专属（规范 §6）：`UNKNOWN_PERMISSION` · `BAD_PERMISSION_NOTES`
 > ★ `UNKNOWN_PERMISSION`：`permissions` 里有白名单外（含禁止项）的权限；`BAD_PERMISSION_NOTES`：`permissionNotes` 键 ⊆ 已声明权限 不成立，或值含换行 / 为空 / 超 200 字。
 
@@ -208,3 +231,7 @@ Rename-Item out.zip <id>.winbox
 - ★ **四个声明式 provider（`subtitle.provider` / `meta.provider` / `discover.source` / `danmaku.source`）同理**：声明式、**无代码、无 `files/`**，
   包内只有 `plugin.json` + `LICENSE`（作者自建的公开 JSON 接口不需要随包任何资源）。
 - ★ **直播输出模板（`live.template`）也一样**：声明式、**无代码、无 `files/`**，包内只有 `plugin.json` + `LICENSE`（它连接口都没有）。
+- ★ **第三方播放内核（`player.engine`）是 `kind:"code"`**：包形态 = `plugin.json` + **`main.js`**（描述符型放空脚本即可）
+  + **`files/`（含你随包自带的可执行文件，如 `files/mpv.exe`）** + `LICENSE`；
+  若随包了**第三方本机程序**（mpv / ffmpeg 等），必须按 §1 在 `licenses/` 原样归档其许可原文并在根 `LICENSE` 署名
+  （copyleft 上游如 GPL 系**必做**）。

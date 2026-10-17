@@ -1,6 +1,6 @@
 ---
 name: winbox-plugin
-description: Author, validate, and package Win-Box .winbox plugins. Use when the user asks to build a Win-Box plugin (插件), or about plugin.json, contributes, permissions, mpv.shaders. Do not use for TVBox source rules.
+description: Author, validate, and package Win-Box .winbox plugins. Use when the user asks to build a Win-Box plugin (插件), or about plugin.json, contributes, permissions, mpv.shaders, theme, providers, or player.engine (第三方播放内核). Do not use for TVBox source rules.
 ---
 
 # Win-Box 插件开发
@@ -69,6 +69,15 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      ★ **宿主渲染 + 不注入 UI**：组件是**受限词汇表**（只 6 类）—— `heading` / `text` / `image` / `divider` / `kv` / `link`；`link` 的 `action` **复用 §5.9 动作词表**。
      ★ 落在对应页面**内容区顶部**；无插件声明该槽位时页面**零变化**；★ 内容与页面数据**无关**（要动态逻辑 → L4）。
      结构 / 自检 / 常见坑 → `references/ui-slot-reference.md`；骨架 → `assets/plugin.ui-slot.json`。
+   - 要**追加第三方播放内核** → `contributes:[{type:"player.engine", id, label, protocol, binary, args, capabilities?}]`（★ **`kind:"code"`**）：
+     ★ **宿主托管进程**：你**只给「引擎描述符」**（协议 / 二进制来源 / 参数模板），宿主负责 `spawn` / `--wid` 嵌入 /
+     通信 / 状态推送 —— 插件**永不拉进程**（`spawn` / `child_process` 是永久禁止项）。
+     ★ 两协议族：`mpv-ipc`（复用 mpv 的 `--input-ipc-server` JSON IPC；必需 `{wid}` `{url}` **`{pipe}`**）｜
+     `json-lines`（宿主定死的 stdin/stdout 一行一 JSON；必需 `{wid}` `{url}`，**不得**带 `{pipe}`）。
+     ★ **exe 路径不写在 `args` 里**（由 `binary` 决定）；二进制**随包自带**（`plugin-file` + `files/…`）或让用户指本机路径（`local-path`）；
+     ★ 不能靠 `runtimeDeps` 分发二进制（v1 无下载装配管线）。
+     ★ **默认关**：用户须在「配置 → 播放 → 插件播放内核」开启（**首次开启二次确认**），再在控制条内核列表里选用（**不参与「自动」**）。
+     结构 / 占位符 / **两协议线格式** / 自检 / 常见坑 → `references/player-engine-reference.md`；骨架 → `assets/plugin.player-engine.json`。
    - **要跑自己的代码**（出网 / 存数据 / 控制播放，声明式做不到）→ **L4 `kind:"code"`**：
      `main` 在**独立沙箱 worker** 里跑；`permissions` 逐组授权宿主 API（`winbox.*`）——**未授权的 API 根本不存在**（调用即 `TypeError`）；沙箱里**没有** `require`/`process`/`fs`。
      ★ 装 `kind:"code"` 时宿主会**弹窗展示权限清单**（`permissionNotes`），用户确认后才装。
@@ -81,6 +90,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 |---|---|---|---|---|
 | L1 声明式资源 | `asset` | 必填 | 空 | `mpv.shaders`、`theme` |
 | L2 声明式数据源 | `asset` | 必填 | 空 | 弹幕 / 字幕 / 元数据源；`live.template`（输出模板） |
+| L2 描述符（**恒 `code`**） | `code` | 必填 | 必填（白名单） | `player.engine`（★ 宿主托管进程；默认关 + 首次开启二次确认；**不参与「自动」**） |
 | L3 UI 槽位 | `asset` | 必填 | 空 | `ui.slot`（受限组件树）、`ui.command`（受限动作按钮）、`keymap`（追加快捷键）、`settings.panel`（设置面板） |
 | L4 沙箱代码 | `code` | 可组合 | 必填（白名单） | 需出网 / 存数据 / 控制播放 |
 
@@ -97,6 +107,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - **追加快捷键（keymap）参考**：`references/keymap-reference.md`（键位护栏 + 作用域 + 复用动作词表 + 自检 + 常见坑）
 - **插件设置面板（settings.panel）参考**：`references/settings-panel-reference.md`（受限词汇表 4 类 + 值持久化 + 自检 + 常见坑）
 - **受限 UI 槽位（ui.slot）参考**：`references/ui-slot-reference.md`（6 类受限组件 + 槽位表 + 复用动作词表 + 自检 + 常见坑）
+- **第三方播放内核（player.engine）参考**：`references/player-engine-reference.md`（引擎描述符 + 占位符表 + **两协议线格式** + 二进制来源与授权 + 自检 + 常见坑）
 - **L4 沙箱代码插件参考**：`references/l4-sandbox-reference.md`（12 权限表 + `winbox.*` 用法 + 沙箱边界「未授权 API 不存在」+ 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
-- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `plugin.live-template.json` / `plugin.ui-command.json` / `plugin.keymap.json` / `plugin.settings-panel.json` / `plugin.ui-slot.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `plugin.live-template.json` / `plugin.ui-command.json` / `plugin.keymap.json` / `plugin.settings-panel.json` / `plugin.ui-slot.json` / `plugin.player-engine.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

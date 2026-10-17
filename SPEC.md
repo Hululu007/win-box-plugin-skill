@@ -136,10 +136,10 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `subtitle.provider` | 字幕源 | `asset` / `code` | M2 | 低 | 字幕 provider 注册表 |
 | `meta.provider` | 元数据源（海报 / 简介 / 评分） | `asset` / `code` | M2 | 中（出网） | 元数据 provider 注册表 |
 | `discover.source` | 发现页数据源（榜单 / 分类浏览） | `asset` / `code` | M2 | 中（出网） | 发现页数据 |
-| `live.template` | 直播源**模板**（仅格式化输出，**不解析规则**） | `asset` | M2 | 中 | 直播输出 |
-| `player.engine` | 追加播放内核 | **`code`** | M2 | **高**（本机二进制，需显式授权） | 播放器内核 |
+| `live.template` | 直播源**模板**（**仅格式化输出**，★ **不发请求、不解析规则**） | `asset` | M2 | 中 | 直播**导出**（§5.8） |
+| `player.engine` | 追加播放内核 | **`code`** | M2 **✅已实装** | **高**（本机二进制，需显式授权） | 播放器内核（**§6.3**） |
 | `ui.slot` | 受限 UI 槽位（声明式词汇表 / `iframe`） | `asset` | M2 | 低 | `WebHomeWindow` / `fm` 桥 |
-| `ui.command` | 注册受限动作按钮（配置页 / 播放器） | `asset` / `code` | M2 | 低 | 渲染层受限渲染 |
+| `ui.command` | 注册受限动作按钮（配置页 / 播放器，**动作词表**内） | `asset` / `code` | M2 | 低 | 渲染层受限渲染（§5.9） |
 | `settings.panel` | 插件设置面板（受限词汇表） | `asset` | M2 | 低 | 配置页 |
 | `keymap` | 追加快捷键（不与宿主冲突） | `asset` | M2 | 低 | 快捷键分发 |
 
@@ -147,7 +147,6 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - ❌ `code.spider` 及任何**引擎解析行为**相关贡献 —— 红线③（1:1 复刻）
 - ❌ `main.hook` 及任何**主进程执行**贡献 —— 红线①
 - ❌ `drive.provider`（网盘 provider）—— 触碰凭据（高危面）；M2 起**最多允许声明式只读描述**，**不得注册取流逻辑**
-
 ### 5.2 `mpv.shaders` 结构
 ```jsonc
 { "type": "mpv.shaders",
@@ -170,7 +169,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
   "tokens": { "--accent": "#e879a6", "--surface-0": "#120d12" },
   "layout": { "nav": "top", "density": "comfy" } }
 ```
-- **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 见 **§15**（机器可读口径 = `src/shared/plugin.ts` 的 `THEME_TOKENS` / `validateThemeContribute`）。
+- **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 见 **§15**（机器可读口径 = 宿主插件契约模块的 `THEME_TOKENS` / `validateThemeContribute`）。
 - ★ **v1 不允许任何 CSS**：`tokens` 只能取词表内的令牌名；出现词表外的名字（含 `--nf-*` 一类自造前缀）或夹带 `style` / `.css` → 拒装。
 - 内置 4 套皮肤与插件皮肤**同一套契约**（内置皮肤同样只允许一段令牌声明）。
 
@@ -198,7 +197,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - 装上后**自动出现在「字幕设置」的源开关列表**（与内置源同列，可单独关掉）。
 - **拒装原因码**：`SUBTITLE_PROVIDER_INVALID`（结构/字段越界）· `SUBTITLE_ID_TAKEN`（占用内置源 id）·
   `BAD_PROVIDER_URL`（协议 / 占位符 / 请求头）· `BAD_PROVIDER_PATH`（JSON 路径语法）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `SubtitleProviderContribute` / `validateSubtitleProviderContribute` /
+- **机器可读口径**：宿主插件契约模块的 `SubtitleProviderContribute` / `validateSubtitleProviderContribute` /
   `RESERVED_SUBTITLE_IDS` / `expandSubTemplate` / `jsonPathGet`。
 - 可直接安装的示例皮肤包：[`skills/winbox-plugin/assets/theme-sakura.winbox`](skills/winbox-plugin/assets/theme-sakura.winbox)
   （打包命令与自测三步见 [`skills/winbox-plugin/references/theme-reference.md`](skills/winbox-plugin/references/theme-reference.md) §6）。
@@ -229,7 +228,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
 - **拒装原因码**：`META_PROVIDER_INVALID`（结构 / 字段越界）· `META_ID_TAKEN`（占用内置来源 id）·
   `BAD_PROVIDER_URL`（协议 / 占位符 / imageBase / 请求头）· `BAD_PROVIDER_PATH`（JSON 路径语法）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `MetaProviderContribute` / `validateMetaProviderContribute` /
+- **机器可读口径**：宿主插件契约模块的 `MetaProviderContribute` / `validateMetaProviderContribute` /
   `RESERVED_META_IDS` / `META_PLACEHOLDERS` / `META_MAP_FIELDS`。
 
 ### 5.6 `discover.source` 结构（**L2 声明式发现页数据源**，2026-10-18 已实装 asset 形）
@@ -260,7 +259,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **空分区不显示**：`list` 取到 0 条（或不是数组）时该分区不出现（不留空行）；单分区失败**只跳过该分区**。
 - **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
 - **拒装原因码**：`DISCOVER_PROVIDER_INVALID`（结构 / 字段越界 / section 重名）· `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `DiscoverSourceContribute` / `DiscoverSectionContribute` /
+- **机器可读口径**：宿主插件契约模块的 `DiscoverSourceContribute` / `DiscoverSectionContribute` /
   `validateDiscoverSourceContribute` / `DISCOVER_PLACEHOLDERS` / `DISCOVER_MAP_FIELDS`。
 
 ### 5.7 `danmaku.source` 结构（**L2 声明式弹幕源**，2026-10-18 已实装 asset 形）
@@ -293,7 +292,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
   ★ v1 **不进入**播放器「弹幕源」面板的接口开关清单 —— 要停用请在 **配置 → 插件** 停用该插件。
 - **JSON 路径语法 / 请求头限制 / 路径安全**：与 §5.4 同一套口径。
 - **拒装原因码**：`DANMAKU_PROVIDER_INVALID`（结构 / 段缺失 / 字段越界）· `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `DanmakuSourceContribute` / `DanmakuSearchSpec` / `DanmakuEpisodesSpec` /
+- **机器可读口径**：宿主插件契约模块的 `DanmakuSourceContribute` / `DanmakuSearchSpec` / `DanmakuEpisodesSpec` /
   `validateDanmakuSourceContribute` / `DANMAKU_SEARCH_PLACEHOLDERS` / `DANMAKU_EPISODES_PLACEHOLDERS` /
   `DANMAKU_COMMENTS_PLACEHOLDERS` / `DANMAKU_ANIME_MAP_FIELDS` / `DANMAKU_EPISODE_MAP_FIELDS`。
 
@@ -328,7 +327,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **拒装原因码**：`LIVE_TEMPLATE_INVALID`（结构 / 字段 / `format` / 占位符越界 / `group` 含 `{url}` / `header` / `ext`）·
   `BAD_LIVE_TEMPLATE_LINE`（`line` 为空、缺 `{url}`、含空行）。
   > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不发请求、不取 JSON）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `LiveTemplateContribute` / `validateLiveTemplateContribute` /
+- **机器可读口径**：宿主插件契约模块的 `LiveTemplateContribute` / `validateLiveTemplateContribute` /
   `liveTemplateContributeOf` / `LIVE_TEMPLATE_PLACEHOLDERS` / `LIVE_TEMPLATE_FORMATS` / `liveTemplateExt` / `LiveTemplateView`；
   适配层 `src/main/plugin/pluginLiveTemplate.ts`（`liveTemplateFromContribute` / `builtinLiveTemplates`）；
   宿主 `PluginHost.liveTemplates()` → `SpiderHost.liveTemplates()` / `SpiderHost.renderLiveExport()`。
@@ -361,14 +360,14 @@ Rename-Item super-resolution.zip super-resolution.winbox
 | `set-theme` | `theme`（皮肤 id） | 复用「切换皮肤」 |
 
 - `to` 白名单：`discover`（发现）/ `home`（点播）/ `history` / `favorites` / `live` / `storage` / `config` / `about`。
-  ★ 写**语义名**而非路径（路径会拒装）；渲染层的映射表见 `src/shared/plugin.ts` 的 `UI_NAV_PATHS`。
+  ★ 写**语义名**而非路径（路径会拒装）；渲染层的映射表见 宿主插件契约模块的 `UI_NAV_PATHS`。
 - ★ **参数必须与动作匹配** —— `navigate` 带 `url`、`open-url` 带 `theme`、`export-live` 带 `to` 等**一律拒装**
   （防"作者以为能做、实际不做"）；顶层多余字段（`icon` / `onClick` / `script`）同样拒装。
 - **生效位置**：**配置 → 插件**页的「插件命令」区 + **播放器控制条**（与「统计 / 键位」同一排控件，探针同款样式）。
 - **拒装原因码**：`UI_COMMAND_INVALID`（结构 / 字段 / 挂载点 / 动作词表 / 参数与动作不匹配 / `label`·`title`·`confirm` 边界）·
   `BAD_UI_COMMAND_URL`（`open-url` 的 `url` 非 http(s) 或含空白）。
   > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不取数、不取 JSON）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `UiCommandContribute` / `UiCommandPlacement` / `UiCommandAction` / `UiNavTarget` /
+- **机器可读口径**：宿主插件契约模块的 `UiCommandContribute` / `UiCommandPlacement` / `UiCommandAction` / `UiNavTarget` /
   `UI_COMMAND_PLACEMENTS` / `UI_COMMAND_ACTIONS` / `UI_NAV_TARGETS` / `UI_NAV_PATHS` /
   `validateUiCommandContribute` / `uiCommandContributeOf` / `UiCommandView`；
   适配层 `src/main/plugin/pluginUiCommand.ts`（`uiCommandFromContribute`）；
@@ -410,7 +409,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **拒装原因码**：`KEYMAP_INVALID`（结构 / 字段 / `scope` / 动作词表 / 参数与动作不匹配 / `label`·`title`·`confirm` 边界）·
   `BAD_KEYMAP_KEY`（键位串非法：缺修饰键 / 主键越界 / 未知修饰键）· `BAD_KEYMAP_URL`（`open-url` 的 `url` 非 http(s) 或含空白）。
   > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不取数、不取 JSON）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `KeymapContribute` / `KeymapScope` / `KeymapAction` / `KeymapModifier` /
+- **机器可读口径**：宿主插件契约模块的 `KeymapContribute` / `KeymapScope` / `KeymapAction` / `KeymapModifier` /
   `KEYMAP_SCOPES` / `KEYMAP_MODIFIERS` / `parseKeyCombo` / `validateKeymapContribute` / `keymapContributeOf` / `KeymapView`；
   适配层 `src/main/plugin/pluginKeymap.ts`（`keymapFromContribute`）；宿主 `PluginHost.keymaps()` → IPC `plugin:keymaps`；
   **分发器** `src/renderer/lib/pluginKeymaps.ts`（`keymapsFor` / `keymapEventMatches` / `usePluginKeymaps`）；
@@ -452,7 +451,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **生效位置**：**配置 → 插件/组件**页里**每个插件的卡片内**（该插件声明了面板才显示）。★ 卸载**不清理**设置值（便于重装后沿用）。
 - **拒装原因码**：`SETTINGS_PANEL_INVALID`（结构 / 字段 / 类型白名单 / 参数与类型不匹配 / `key`·`label`·`title`·`hint` 边界 / options 边界）·
   `BAD_SETTINGS_DEFAULT`（`default` 与 `type` 不匹配：toggle 非布尔 / select 不在 options / text 超 `maxLength` / number 越界或非数字）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `SettingsPanelContribute` / `SettingsFieldContribute` / `SettingsFieldType` / `SettingsValue` / `SettingsOption` /
+- **机器可读口径**：宿主插件契约模块的 `SettingsPanelContribute` / `SettingsFieldContribute` / `SettingsFieldType` / `SettingsValue` / `SettingsOption` /
   `SETTINGS_FIELD_TYPES` / `settingsValueError` / `settingsEffectiveValue` / `validateSettingsPanelContribute` / `settingsPanelContributeOf` / `SettingsPanelView` / `SettingsFieldView`；
   适配层 `src/main/plugin/pluginSettingsPanel.ts`（`settingsPanelFromContribute`）；宿主 `PluginHost.settingsPanels()` / `setPluginSetting()` → IPC `plugin:settings` / `plugin:settings:set`；
   ★ 持久化 = `PluginHost` 的设置 JsonStore（`<userData>/plugin-settings.json`）；表单渲染与写回 = **渲染层**（`ConfigPage`）。
@@ -495,7 +494,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **生效位置**：对应宿主页面的**内容区顶部**（一插件可同时投多个槽位；同 id 先到先得）。
 - **拒装原因码**：`UI_SLOT_INVALID`（结构 / 字段 / 组件类型白名单 / **参数与类型不匹配** / `slot` 白名单 / `items` 数量 / 文本与 kv 行边界 / `link` 的 label 与动作参数）·
   `BAD_UI_SLOT_URL`（`image.url` 或 `link(open-url).url` 非 http(s) 或含空白）。
-- **机器可读口径**：`src/shared/plugin.ts` 的 `UiSlotContribute` / `UiSlotItem` / `UiSlotItemType` / `UiSlotKvItem` /
+- **机器可读口径**：宿主插件契约模块的 `UiSlotContribute` / `UiSlotItem` / `UiSlotItemType` / `UiSlotKvItem` /
   `UI_SLOT_IDS` / `UI_SLOT_ITEM_TYPES` / `validateUiSlotContribute` / `uiSlotContributeOf` / `UiSlotView` / `UiSlotItemView`；
   适配层 `src/main/plugin/pluginUiSlot.ts`（`uiSlotFromContribute`）；宿主 `PluginHost.uiSlots()` → IPC `plugin:slots`；
   **渲染器** `src/renderer/components/PluginSlot.tsx`（+ `src/renderer/lib/pluginSlots.ts` 的 `slotsFor`）；
@@ -547,11 +546,118 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 > ★ **L4 是权限天花板**：宿主不提供"在主进程执行第三方代码"的任何能力。沙箱内**没有** `require`/`process`/`fs`/`child_process`，只有上表显式授权的 API。
 
-**机器可读口径（已实装）**：`src/shared/plugin.ts` 的 `PERMISSIONS` / `PermissionId` / `PERMISSION_LABELS` / `isPermission` / `permissionNotes` 校验（`BAD_PERMISSION_NOTES`）；
+**机器可读口径（已实装）**：宿主插件契约模块的 `PERMISSIONS` / `PermissionId` / `PERMISSION_LABELS` / `isPermission` / `permissionNotes` 校验（`BAD_PERMISSION_NOTES`）；
 沙箱运行时（宿主侧独立模块）；
 宿主沙箱能力实现（宿主侧独立模块）；接入 `PluginHost.attachSandbox()/pluginSettingsAccess()`；
 安装两段式 IPC `plugin:inspect` + `plugin:install({path})`（`kind:"code"` 弹**权限确认**）。
 **SKILL 侧**：`references/l4-sandbox-reference.md` + 骨架 `assets/plugin.code.json` + `checks.md` §2.12。
+
+### 6.3 `player.engine` 结构（**第三方播放内核**，2026-10-18 已实装；**只可能 `kind:"code"`**）
+
+> ★ 本类型**风险最高**：它会让**宿主启动你提供的本机程序**。三条形态约定**全部由机器校验**：
+> ① **宿主托管进程** —— 你**只给「引擎描述符」**（协议 / 二进制来源 / 参数模板）；**宿主**负责 `spawn`、
+> `--wid` 嵌入播放器窗口、协议通信、状态推送（节流 200ms）。★ 插件**永不拉进程**：`spawn` / `child_process`
+> 是 §6.2 的**永久禁止项**，你没有这个权限，也**不需要**写任何启动代码。
+> ② **只可能 `kind:"code"`** —— `CONTRIBUTES['player.engine'].kinds` 已冻结为 `['code']` ⇒ 清单**必须**有 `main`
+> 与**非空 `permissions`**（描述符型插件通常只写 `["log"]`，放个空 `main.js` 即可）。
+> ③ **默认关 + 显式授权** —— 安装期弹权限清单；配置页**单独开关**且**首次开启二次确认**；未启用时
+> `engine:start` 被宿主**明确拒绝**（不会「悄悄起来」）。
+
+```jsonc
+{ "type": "player.engine",
+  "id": "my-mpv",
+  "label": "我的 MPV",
+  "protocol": "mpv-ipc",
+  "binary": { "source": "plugin-file", "file": "files/mpv.exe" },
+  "args": ["--no-config", "--wid={wid}", "--input-ipc-server={pipe}", "{url}",
+           "--start={start}", "--volume={volume}", "--speed={rate}"],
+  "capabilities": ["seek", "rate", "tracks", "subtitle", "fit"] }
+```
+
+**字段**（顶层只允许这 7 个）
+| 字段 | 类型 | 必填 | 约束 |
+|---|---|---|---|
+| `id` | string | ✅ | `[a-z0-9-]{3,40}`；渲染层内核值 = `engine:<id>`；同 id **先到先得** |
+| `label` | string | ✅ | 1~40 字，不含换行（配置页 / 控制条内核列表显示） |
+| `protocol` | string | ✅ | `mpv-ipc` \| `json-lines`（v1 只认这两族） |
+| `binary.source` | string | 可选（缺省 `plugin-file`） | `plugin-file` \| `local-path` |
+| `binary.file` | string | `plugin-file` **必填** | 包内**安全相对名**（无 `..` / 无盘符 / 无前导 `/`）；`local-path` **不得**带 |
+| `args` | string[] | ✅ | 非空、≤24 项；每项无换行；占位符 ⊆ 白名单 |
+| `capabilities` | string[] | 可选 | 非空、不重复；每项 ∈ `seek` / `rate` / `tracks` / `subtitle` / `fit` |
+
+★ `exe` 路径**不在 `args` 里** —— 它由 `binary` 决定，宿主拼命令行（`spawn(exe, args)`）。
+
+**占位符（宿主展开）** —— 白名单：`{wid}` · `{pipe}` · `{url}` · `{start}` · `{volume}` · `{fit}` · `{rate}`
+
+| 占位符 | 宿主填入的值 |
+|---|---|
+| `{wid}` | 播放器窗口 HWND（十进制整数串） |
+| `{url}` | 播放地址（宿主既有 `/play` 中继；防盗链头 / 网盘 cookie 已注入） |
+| `{pipe}` | 本次会话的 IPC 管道名（`\\.\pipe\winbox-engine-…`） |
+| `{start}` | 起播位置：**整数秒**（≤0 **不提供**） |
+| `{volume}` | 初始音量：**整数百分比 0~130**（对齐 mpv CLI 的 `--volume`） |
+| `{rate}` | 倍速**浮点**（对齐 mpv CLI 的 `--speed`） |
+| `{fit}` | `contain` / `fill` / `cover` / `r169` / `r43` / `none` |
+
+★ **必需 / 禁止按协议分支**（口径 = 「不满足它就不是一个可用的嵌入式内核」⇒ 拒装）：
+
+| `protocol` | 必需占位符 | 不得出现 |
+|---|---|---|
+| `mpv-ipc` | `{wid}` `{url}` **`{pipe}`** | — |
+| `json-lines` | `{wid}` `{url}` | **`{pipe}`**（该族通道就是 stdin/stdout，带 `{pipe}` 说明作者误解协议） |
+
+★ **可选占位符（`{start}`/`{volume}`/`{fit}`/`{rate}`）缺省 → 该参数项「整项丢弃」**（避免传空串导致内核报错）；
+`0` 是**显式值**（`--volume=0` = 静音）→ 保留。
+
+**协议边界（两族线格式由宿主定死）**
+- **`mpv-ipc`**：**逐字复用** mpv 的 `--input-ipc-server` JSON IPC（`observe_property` / `property-change` /
+  `loadfile` / `set_property`）⇒ 你的 exe **必须是 mpv 或 mpv 系兼容构建**（认 `--wid` / `--input-ipc-server`）；
+  ★ **播放地址由 `{url}` 参数项承载**（宿主**不会**再额外 `loadfile`），并会按窗口高度下发 `video-margin-ratio-top`。
+- **`json-lines`**（**通用族**）：进程 **stdin / stdout 各一行一个 JSON 对象**（UTF-8，`\n` 分隔）。
+  下行（宿主 → 引擎）：
+  `{"cmd":"load","url":…,"start":…,"paused":…,"volume":…,"rate":…,"fit":…}` · `{"cmd":"play"}` / `{"cmd":"pause"}` ·
+  `{"cmd":"seek","value":…}` / `{"cmd":"volume","value":…}` / `{"cmd":"rate","value":…}` / `{"cmd":"fit","value":"contain"}` ·
+  `{"cmd":"quit"}`。
+  上行（引擎 → 宿主）：`{"event":"loaded","duration":…,"live":…}` · `"time"` · `"duration"` · `"paused"` · `"buffering"` ·
+  `"eof"` · `"exit"` · `"error"`（带 `message`）· `"tracks"`（`{"event":"tracks","audio":[{"id":1,"title":"国语"}],"sub":[{"id":2}]}`）。
+  ★ 字段名**就是上表**，宿主**不做字段重映射** —— 原生协议不同请自己写个小转发程序；
+  ★ **未识别的事件 / 字段一律忽略**（前向兼容）；进程 exit 或 `{"event":"exit"}` → 置「已退出」；
+  ★ 本族**不做真机探针**（宿主自带样本是 mpv 系），线格式由**纯函数单测**保证覆盖。
+
+**二进制来源（v1 两处，都不走下载管线）**
+- `plugin-file`（**主**）：`files/…` **随包自带**；宿主解析为 `<插件目录>/<file>`，且**必须仍落在插件目录内**（越界即拒）。
+- `local-path`（**次**）：用户在本机指定路径（「配置 → 播放 → 插件播放内核」填，对位内置 `mpvPath` 口径）；
+  未填 / 路径不存在 → **未就绪**（内核**仍出现在列表**里但不可选，带人话原因）。
+- ★ **不得用 `runtimeDeps` 分发可执行文件**：v1 的 `runtimeDeps` 只有**清单校验、没有下载/装配管线**，
+  内置许可清单里也只有着色器文本资源（§7）⇒ 二进制**要么随包自带，要么让用户指路径**。
+
+**授权口径（三层闸门，缺一不可）**
+1. **安装期**：`kind:"code"` → 弹**权限清单**（`permissionNotes`），用户确认才装（§6.1 两段式）；
+2. **启用期**：「配置 → 播放 → 插件播放内核」**单独开关**（**默认关**）+ **首次开启二次确认**
+   （明确告知「该内核为插件提供的本机程序，将由宿主代为启动并通信」）；
+3. **运行期**：`engine:start` 先过**启用闸门** —— 未启用 → `{ ok:false, reason:'该内核未启用…' }`。
+★ 用户**显式选**才生效（**插件内核不参与 `auto`**）；起播失败（未启用 / 未就绪 / 进程起不来）→
+界面**明确报错 + 自动回落内置 HTML5**，绝不静默假装成功。
+
+**原因码**
+- `PLAYER_ENGINE_INVALID`：`id` / `label` / `protocol` 非法；`binary` 形态（`plugin-file` 缺 `file`、
+  `local-path` 带 `file`、`file` 越界、`source` 越界、未知字段）；`capabilities` 枚举 / 重复；顶层未知字段。
+- `BAD_ENGINE_ARGS`：`args` 的**结构性**问题 —— 非数组 / 空 / 超 24 项 / 含换行 / 空项 / 占位符越界 /
+  **缺协议必需占位符** / **`json-lines` 带 `{pipe}`**。
+
+**机器可读口径（已实装）**：宿主插件契约模块的 `PlayerEngineContribute` / `PlayerEngineProtocol` /
+`PlayerEngineBinarySource` / `PlayerEngineCapability` + `PLAYER_ENGINE_PROTOCOLS` / `PLAYER_ENGINE_PLACEHOLDERS` /
+`PLAYER_ENGINE_CAPABILITIES` + `validatePlayerEngineContribute` / `playerEngineContributeOf` / `PlayerEngineView`
+（含可选 `source`）；原因码见上；`validatePluginManifest` 接入（★ `player.engine` 恒 `code` ⇒ 内容校验**不分 kind**）。
+宿主：宿主引擎参数与协议纯函数模块
++ 宿主引擎会话控制器（两协议适配 + 节流 200ms 推 `engine:state`）
++ 宿主引擎装配模块 + `PluginHost.playerEngines()/playerEngineSpec()`；
+IPC 七通道 `engine:list` / `engine:status` / `engine:enable` / `engine:start` / `engine:cmd` / `engine:stop` / `engine:state`
+（`engine:start` 先过启用闸门）；偏好 `playerSettings.engineEnabled` / `enginePaths`；
+渲染层内核选择模块（`Kernel` / `KernelPref` 扩 `engine:${string}`，**不参与 `auto`**）
++ `VideoPlayer` 控制适配器（三态）+ `ConfigPage` 内核区（开关 / 状态 / `local-path` 路径 / 二次确认）。
+**SKILL 侧**：`references/player-engine-reference.md` + 骨架 `assets/plugin.player-engine.json` + `checks.md` §2.13。
+
 ---
 
 ## 7. 运行库：`runtimeDeps`（**安装之后**才下载）
@@ -604,7 +710,7 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - [ ] 附 `LICENSE`；第三方资源**许可兼容**并署名（见 §12）。
 
 **常见拒装原因码**：`MISSING_MANIFEST` · `ID_INVALID` · `API_VERSION_MISMATCH` · `KIND_PERM_MISMATCH` · `UNKNOWN_CONTRIBUTE` · `PATH_ESCAPE` · `SHA_MISMATCH` · `INCOMPLETE` · `DEP_NOT_ALLOWED`。
-
+**分类专属原因码**（逐类口径见对应小节）：`theme` §5.3 · `subtitle.provider` §5.4 · `meta.provider` §5.5 · `discover.source` §5.6 · `danmaku.source` §5.7 · `live.template` §5.8 · `ui.command` §5.9 · `keymap` §5.10 · `settings.panel` §5.11 · `ui.slot` §5.12 · `player.engine` §6.3（`PLAYER_ENGINE_INVALID` / `BAD_ENGINE_ARGS`）· L4 权限 §6.1（`UNKNOWN_PERMISSION` / `BAD_PERMISSION_NOTES`）。
 ---
 
 ## 11. 打包与命名（速查）
