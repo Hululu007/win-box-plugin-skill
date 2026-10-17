@@ -155,6 +155,17 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] 顶层**无多余字段**（`html` / `script` / `style` 一律拒装）
 - [ ] **真机两步**：装 → 打开对应页面 ⇒ 内容区顶部出现插件内容 → 停用后页面**恢复原样（零残留）**
 
+## 2.12 L4 沙箱代码插件（`kind:"code"`）—— 逐条核对
+> ★ **唯一会「跑你的代码」的级别**（在**独立沙箱 worker** 内）；`references/l4-sandbox-reference.md`；规范 §6。
+- [ ] `kind:"code"` + **`main` 存在且是安全相对名**（无 `..` / 无绝对路径）+ **`permissions` 非空**
+- [ ] `permissions` **逐条**都在 12 项白名单内（`net` / `net.download` / `kv` / `settings` / `fs.plugin` / `log` / `notify` / `clipboard.read` / `clipboard.write` / `dialog` / `player.control` / `openExternal`）
+- [ ] **未写禁止项**（`main` / `spawn` / `child_process` / `eval` / `fs` / `cred` / `proxy` / `registry` / `raw.net`）
+- [ ] `permissionNotes`（建议每条都写）：**键 ⊆ `permissions`**、值 1~200 字无换行
+- [ ] `main` 里**没有** `require` / `process` / `fs` / `child_process`（沙箱里不存在）
+- [ ] 用到的 `winbox.xxx` 全部已在 `permissions` 声明（**未授权的 API 不存在**，调用即 `TypeError`）
+- [ ] `fs.*` 只用**插件内相对路径**；`openExternal` 只用 `http(s)://`
+- [ ] **真机**：装（会弹**权限确认**）→ 配置页可见 **沙箱运行中**；停用后沙箱停；日志里有 `plugin:<id>` 前缀输出
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -177,6 +188,9 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 > ★ 它**不取数、不跑代码**：宿主渲染表单并**代持久化**；参数与类型不匹配 → INVALID，`default` 与类型不符 → `BAD_SETTINGS_DEFAULT`。
 受限 UI 槽位专属（规范 §5.12）：`UI_SLOT_INVALID` · `BAD_UI_SLOT_URL`
 > ★ 它**不取数、不跑代码**：只声明受限组件树；参数与类型不匹配 / `slot` 越界 → INVALID，`image`·`link` 的 url 非 http(s) → URL。
+
+L4 沙箱专属（规范 §6）：`UNKNOWN_PERMISSION` · `BAD_PERMISSION_NOTES`
+> ★ `UNKNOWN_PERMISSION`：`permissions` 里有白名单外（含禁止项）的权限；`BAD_PERMISSION_NOTES`：`permissionNotes` 键 ⊆ 已声明权限 不成立，或值含换行 / 为空 / 超 200 字。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell

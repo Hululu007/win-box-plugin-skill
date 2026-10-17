@@ -69,6 +69,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      ★ **宿主渲染 + 不注入 UI**：组件是**受限词汇表**（只 6 类）—— `heading` / `text` / `image` / `divider` / `kv` / `link`；`link` 的 `action` **复用 §5.9 动作词表**。
      ★ 落在对应页面**内容区顶部**；无插件声明该槽位时页面**零变化**；★ 内容与页面数据**无关**（要动态逻辑 → L4）。
      结构 / 自检 / 常见坑 → `references/ui-slot-reference.md`；骨架 → `assets/plugin.ui-slot.json`。
+   - **要跑自己的代码**（出网 / 存数据 / 控制播放，声明式做不到）→ **L4 `kind:"code"`**：
+     `main` 在**独立沙箱 worker** 里跑；`permissions` 逐组授权宿主 API（`winbox.*`）——**未授权的 API 根本不存在**（调用即 `TypeError`）；沙箱里**没有** `require`/`process`/`fs`。
+     ★ 装 `kind:"code"` 时宿主会**弹窗展示权限清单**（`permissionNotes`），用户确认后才装。
+     权限表 / 用法 / 边界 / 自检 / 常见坑 → `references/l4-sandbox-reference.md`；骨架 → `assets/plugin.code.json`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -93,5 +97,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - **追加快捷键（keymap）参考**：`references/keymap-reference.md`（键位护栏 + 作用域 + 复用动作词表 + 自检 + 常见坑）
 - **插件设置面板（settings.panel）参考**：`references/settings-panel-reference.md`（受限词汇表 4 类 + 值持久化 + 自检 + 常见坑）
 - **受限 UI 槽位（ui.slot）参考**：`references/ui-slot-reference.md`（6 类受限组件 + 槽位表 + 复用动作词表 + 自检 + 常见坑）
+- **L4 沙箱代码插件参考**：`references/l4-sandbox-reference.md`（12 权限表 + `winbox.*` 用法 + 沙箱边界「未授权 API 不存在」+ 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
 - 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `plugin.live-template.json` / `plugin.ui-command.json` / `plugin.keymap.json` / `plugin.settings-panel.json` / `plugin.ui-slot.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

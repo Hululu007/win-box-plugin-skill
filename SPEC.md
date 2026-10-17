@@ -417,10 +417,11 @@ Rename-Item super-resolution.zip super-resolution.winbox
   动作执行**复用** `src/renderer/lib/pluginCommands.ts`（`runPluginCommand`）。
 - **AI skill 侧**：`references/keymap-reference.md` + 骨架 `assets/plugin.keymap.json` + `checks.md` §2.9。
 
-### 5.11 `settings.panel` 结构（**L3 声明式插件设置面板**，2026-10-18 已实装 asset 形）
-> ★ 插件**不跑代码、不注入任何 UI**（红线②）—— 只声明「一组**受限字段**」（label / type / default），
+### 5.11 `settings.panel` 结构（**声明式插件设置面板**，2026-10-18 已实装；`kind:"asset"` 与 `kind:"code"` **都可用**）
+> ★ 插件**不注入任何 UI**（红线②）—— 只声明「一组**受限字段**」（label / type / default），
 > 宿主把它渲染成**宿主样式的表单**，并**代插件持久化**字段值（按插件 id 分桶存 `<userData>/plugin-settings.json`）。
-> ★ **值的读取面留给 L4**（`kind:"code"` + `settings` 权限 → `winbox.settings`）—— 与 §5.4~§5.10「asset 先实装、code 形待 L4」同口径。
+> ★ **`kind:"code"` 也可声明本面板**（面板内容是**声明式 UI**，与 kind 无关）：插件再经 `settings` 权限调
+> `winbox.settings.get/set(key)` 读自己的值（**与面板同一份存储**，按 `field.key` 定位）。
 
 ```jsonc
 { "type": "settings.panel",
@@ -456,7 +457,6 @@ Rename-Item super-resolution.zip super-resolution.winbox
   适配层 `src/main/plugin/pluginSettingsPanel.ts`（`settingsPanelFromContribute`）；宿主 `PluginHost.settingsPanels()` / `setPluginSetting()` → IPC `plugin:settings` / `plugin:settings:set`；
   ★ 持久化 = `PluginHost` 的设置 JsonStore（`<userData>/plugin-settings.json`）；表单渲染与写回 = **渲染层**（`ConfigPage`）。
 - **AI skill 侧**：`references/settings-panel-reference.md` + 骨架 `assets/plugin.settings-panel.json` + `checks.md` §2.10。
-
 ### 5.12 `ui.slot` 结构（**L3 声明式受限 UI 槽位**，2026-10-18 已实装 asset 形）
 > ★ 插件**不跑代码、不注入任何 UI**（红线②：不做任意 React 组件注入）—— 只声明一棵**受限组件树**（6 类组件），
 > 宿主把它渲染进**宿主既有页面的槽位**里（宿主样式、宿主交互）。★ 无插件声明该槽位时，宿主页面**零变化**。
@@ -507,26 +507,36 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 > ★ 本节**只对 `kind:"code"` 有意义**。L1/L2/L3（`kind:"asset"`）**必须** `permissions: []`。
 > `permissions` 管的是**你的沙箱代码能调用哪些宿主 API**（"注册槽位"是 `contributes` 的事，不在这里）。
-> ★ `kind:"code"` **必须**有 `main`（沙箱入口文件相对名，如 `main.js`）—— 宿主在沙箱 worker 里加载并执行它。
+> ★ `kind:"code"` **必须**有 `main`（沙箱入口文件相对名，如 `main.js`）—— 宿主在**独立沙箱 worker** 里加载并执行它。
+> ★ **已实装（R10，2026-10-18）**：以下 11 组 API 的注入面已落地（`main/plugin/sandbox/*`）。
 
 ### 6.1 白名单
-| 权限 | 授予 | 安全级 | 宿主注入 API（契约，M2 实装） |
+| 权限 | 授予 | 安全级 | 宿主注入 API（**已实装**） |
 |---|---|---|---|
 | `net` | 经**宿主代理**的 HTTP（可带 UA/Referer/自定义头） | 中 | `winbox.http(url, opts) → {status, headers, text()}` |
 | `net.download` | 下载（落插件目录，走加速池/代理） | 中 | `winbox.download(url, name, onProgress)` |
 | `kv` | **命名空间隔离**的 KV | 低 | `winbox.kv.get/set/delete`（键前缀 `plugin:<id>:`） |
-| `settings` | 读写**插件自身**设置 | 低 | `winbox.settings.get/set`（`plugins/<id>.winbox/settings.json`） |
-| `fs.plugin` | **仅**插件自身目录读写 | 中 | `winbox.fs.*`（根 = `plugins/<id>.winbox/`，越权即拒） |
+| `settings` | 读写**插件自身**设置 | 低 | `winbox.settings.get/set`（与 `settings.panel` **同一份存储**：`<userData>/plugin-settings.json`，按插件 id 分桶） |
+| `fs.plugin` | **仅**插件自身目录读写 | 中 | `winbox.fs.read/write/list/exists/delete/mkdir`（根 = `plugins/<id>.winbox/`，越权即拒） |
 | `log` | 写日志 | 低 | `winbox.log.i/w/e`（前缀 `plugin:<id>`） |
 | `notify` | 系统通知 | 低 | `winbox.notify(title, body)` |
 | `clipboard.read` | 读剪贴板 | 中 | `winbox.clipboard.read()` |
 | `clipboard.write` | 写剪贴板 | 低 | `winbox.clipboard.write(text)` |
 | `dialog` | 原生消息框（**仅展示**） | 低 | `winbox.dialog.alert/confirm` |
-| `player.control` | 播放控制（play/pause/seek/next/音轨/字幕/音量） | 中 | `winbox.player.*`（经宿主接口，不碰内核） |
+| `player.control` | 播放控制（play/pause/seek/next/prev/音轨/字幕/音量） | 中 | `winbox.player.*`（经宿主**转发给播放器窗口**，不碰内核） |
 | `openExternal` | 打开外部链接/文件 | 中 | `winbox.openExternal(url)`（仅 `http/https`） |
 
 > 建议同时填 `permissionNotes`（每个权限一句话用途）—— **安装时会展示给用户**，便于授权透明。
 > （`ui.slot` / `ui.command` **不在本表**：它们是 `contributes`（注册什么槽位），与权限无关。）
+
+**实装细节（务必知道）**：
+- ★ **未授权的组根本没有**：`winbox.kv` 若没授权 `kv` 就是 `undefined`（调用即 `TypeError`），**不是**「存在但抛错」——由沙箱侧 globals 构造保证。
+- ★ 沙箱内**没有** `require`/`process`/`module`/`exports`/`global`/`Buffer`/`fs`/`child_process`；只给最小全局（`console` + 定时器 + `TextEncoder/TextDecoder` + `URL/URLSearchParams` + `atob/btoa`）。
+- ★ `fs.*` 的 `rel` 必须是**安全相对路径**且解析后仍在插件目录内，越界即拒。
+- ★ `openExternal` 只接受 `http(s)://`。
+- ★ **`onProgress` 非流式**（`net.download`）：宿主 `HttpClient` 暂无流式接口 → v1 只报**两帧**「开始(0,total)」与「完成(bytes,bytes)」。
+- ★ `permissionNotes`（可选）若写：**键必须 ⊆ 已声明权限**，值 1~200 字且不含换行（否则 `BAD_PERMISSION_NOTES`）。
+- ★ `player.control` 的 `play/pause/seek/volume/next/prev/audioTrack/subtitle` 经 `player:ctl` 事件转给**播放器窗口**执行；播放器未打开 → `{ok:false, reason:'播放器未打开'}`。**刻意不提供** `toggle`/`stop`（渲染层无受控实现 → 不给假能力）。
 
 ### 6.2 禁止项（**永不提供**，声明即拒装）
 - `main`（主进程执行 / 任意 JS 注入）、`spawn`（子进程 / `child_process`）、`eval`
@@ -537,6 +547,11 @@ Rename-Item super-resolution.zip super-resolution.winbox
 
 > ★ **L4 是权限天花板**：宿主不提供"在主进程执行第三方代码"的任何能力。沙箱内**没有** `require`/`process`/`fs`/`child_process`，只有上表显式授权的 API。
 
+**机器可读口径（已实装）**：`src/shared/plugin.ts` 的 `PERMISSIONS` / `PermissionId` / `PERMISSION_LABELS` / `isPermission` / `permissionNotes` 校验（`BAD_PERMISSION_NOTES`）；
+沙箱运行时（宿主侧独立模块）；
+宿主沙箱能力实现（宿主侧独立模块）；接入 `PluginHost.attachSandbox()/pluginSettingsAccess()`；
+安装两段式 IPC `plugin:inspect` + `plugin:install({path})`（`kind:"code"` 弹**权限确认**）。
+**SKILL 侧**：`references/l4-sandbox-reference.md` + 骨架 `assets/plugin.code.json` + `checks.md` §2.12。
 ---
 
 ## 7. 运行库：`runtimeDeps`（**安装之后**才下载）

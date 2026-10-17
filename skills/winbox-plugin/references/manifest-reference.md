@@ -28,16 +28,18 @@
 |---|---|---|---|
 | `mpv.shaders` | asset | M1 | ✅ |
 | `theme` | asset | M2 | ✅ |
-| `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `meta.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `discover.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
-| `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
+| `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
+| `meta.provider` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
+| `discover.source` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
+| `danmaku.source` | asset / code | M2 | ✅（asset 声明式；★ code 形待后续） |
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` | asset | M2 | ✅（asset 受限 UI 槽位；6 类受限组件，`link` 复用动作词表） |
-| `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；code 形待 L4） |
+| `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；★ code 形待后续） |
 | `keymap` | asset | M2 | ✅（asset 追加快捷键；动作复用 `ui.command` 词表） |
-| `settings.panel` | asset | M2 | ✅（asset 设置面板；宿主渲染 + 代持久化，读取面待 L4） |
+| `settings.panel` | asset / code | M2 | ✅（设置面板；★ **asset / code 都可用** —— code 插件经 `winbox.settings` 读自己的值） |
+
+> ★ **L4 沙箱已实装**（R10）：`kind:"code"` 的 `main` 在**独立 worker** 里跑，宿主 API 经 `permissions` **逐组授权**（未授权的 `winbox.*` **根本不存在**）。全量说明 / 用法 / 自检 → `references/l4-sandbox-reference.md`；骨架 → `assets/plugin.code.json`。
 
 **禁用**：`code.spider`（引擎解析行为）· `main.hook`（主进程执行）· `drive.provider`（网盘凭据）
 

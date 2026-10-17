@@ -16,8 +16,9 @@
   **`live.template`**（直播**输出**模板，★ **不发请求**：只把宿主已解析的频道格式化导出为 TXT / M3U）；
   **`ui.command`**（受限动作按钮，**L3**：往配置页 / 播放器加按钮，动作走宿主**词表**）；
   **`keymap`**（追加快捷键，**L3**：`app`=主窗口 / `player`=播放器窗口；★ 动作**复用** `ui.command` 词表，键位强制含 Ctrl/Alt/Meta）；
-  **`settings.panel`**（插件设置面板，**L3**：宿主按**受限词汇表**渲染表单 + **代持久化**值；★ 值的读取面待 L4）；
+  **`settings.panel`**（插件设置面板，**L3**：宿主按**受限词汇表**渲染表单 + **代持久化**值；★ 值的读取面已由 **L4 的 `winbox.settings`** 提供）；
   **`ui.slot`**（受限 UI 槽位，**L3**：往宿主页面（发现/点播/详情/直播/历史/收藏）内容区顶部追加**受限组件树**，`link` 复用动作词表）；
+  **L4 沙箱**（`kind:"code"`：你的 `main.js` 在**独立 worker** 沙箱里跑，按 `permissions` 授权使用 `winbox.*`；未授权的 API **根本不存在**）→ `references/l4-sandbox-reference.md`；
   其余（`player.engine` …）陆续接线。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 

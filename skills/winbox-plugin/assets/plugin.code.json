@@ -13,7 +13,8 @@
   "permissions": ["net", "kv", "log"],
   "permissionNotes": {
     "net": "用于从站点接口获取数据",
-    "kv": "用于保存自己的缓存"
+    "kv": "用于保存自己的缓存",
+    "log": "写运行日志，便于排障"
   },
   "contributes": [],
   "updateCheckUrl": "https://api.github.com/repos/you/repo/releases/latest"
