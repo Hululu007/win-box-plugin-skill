@@ -14,7 +14,8 @@
   **`danmaku.source`**（弹幕源，**三步链路**：搜番剧 → 剧集列表 → 弹幕 XML）——后四者都是 **L2 声明式**：
   宿主按你的 URL 模板代发请求，**你不跑代码**；
   **`live.template`**（直播**输出**模板，★ **不发请求**：只把宿主已解析的频道格式化导出为 TXT / M3U）；
-  其余（`ui.slot` / `player.engine` …）陆续接线。
+  **`ui.command`**（受限动作按钮，**L3**：往配置页 / 播放器加按钮，动作走宿主**词表**）；
+  其余（`ui.slot` / `settings.panel` / `player.engine` …）陆续接线。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 
 ## 插件在软件里出现在哪

@@ -333,6 +333,48 @@ Rename-Item super-resolution.zip super-resolution.winbox
   适配层 `src/main/plugin/pluginLiveTemplate.ts`（`liveTemplateFromContribute` / `builtinLiveTemplates`）；
   宿主 `PluginHost.liveTemplates()` → `SpiderHost.liveTemplates()` / `SpiderHost.renderLiveExport()`。
 - **AI skill 侧**：`references/live-template-reference.md` + 骨架 `assets/plugin.live-template.json` + `checks.md` §2.7。
+
+### 5.9 `ui.command` 结构（**L3 声明式受限动作按钮**，2026-10-18 已实装 asset 形）
+
+> ★ 与前几类**都不同**：不是数据源（不取数）、不是输出模板（不格式化），而是**往宿主既有 UI 表面追加一个按钮**。
+> 插件**不跑代码、不注入任何 UI**（红线②：不做任意 React 组件注入）—— 只声明「按钮 + 动作」，
+> 按钮由宿主按自己的样式渲染，动作由**渲染层**按**宿主预定义词表**执行。
+
+```jsonc
+{ "type": "ui.command",
+  "id": "open-help",                  // [a-z0-9-]{3,40}；同一插件可声明**多条**命令（各自独立 id）
+  "label": "打开帮助",                 // 按钮文字（1~40 字，不含换行）
+  "title": "在系统浏览器里打开帮助页",   // 可选：悬停提示（≤120 字）
+  "placement": ["config", "player"],  // 挂载点，≥1：config（配置 → 插件页）/ player（播放器控制条）
+  "action": "open-url",               // 动作词表（见下）
+  "url": "https://example.com/help",  // action=open-url 必填（仅 http/https）
+  "confirm": false }                  // 可选：执行前二次确认
+```
+
+**动作词表（★ 只能选，不能自己写逻辑）**：
+
+| `action` | 必填参数 | 宿主行为 |
+|---|---|---|
+| `open-url` | `url`（仅 `http`/`https`） | 系统浏览器打开（主进程 `shell.openExternal`） |
+| `navigate` | `to`（语义名）+ 可选 `section`（仅 `to:"config"`） | 跳宿主页面；`section` = 配置卡片锚点（`#cfg-<section>`） |
+| `export-live` | 可选 `template`（模板 id） | 复用「导出直播线路」（当前活动线路） |
+| `set-theme` | `theme`（皮肤 id） | 复用「切换皮肤」 |
+
+- `to` 白名单：`discover`（发现）/ `home`（点播）/ `history` / `favorites` / `live` / `storage` / `config` / `about`。
+  ★ 写**语义名**而非路径（路径会拒装）；渲染层的映射表见 `src/shared/plugin.ts` 的 `UI_NAV_PATHS`。
+- ★ **参数必须与动作匹配** —— `navigate` 带 `url`、`open-url` 带 `theme`、`export-live` 带 `to` 等**一律拒装**
+  （防"作者以为能做、实际不做"）；顶层多余字段（`icon` / `onClick` / `script`）同样拒装。
+- **生效位置**：**配置 → 插件**页的「插件命令」区 + **播放器控制条**（与「统计 / 键位」同一排控件，探针同款样式）。
+- **拒装原因码**：`UI_COMMAND_INVALID`（结构 / 字段 / 挂载点 / 动作词表 / 参数与动作不匹配 / `label`·`title`·`confirm` 边界）·
+  `BAD_UI_COMMAND_URL`（`open-url` 的 `url` 非 http(s) 或含空白）。
+  > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不取数、不取 JSON）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `UiCommandContribute` / `UiCommandPlacement` / `UiCommandAction` / `UiNavTarget` /
+  `UI_COMMAND_PLACEMENTS` / `UI_COMMAND_ACTIONS` / `UI_NAV_TARGETS` / `UI_NAV_PATHS` /
+  `validateUiCommandContribute` / `uiCommandContributeOf` / `UiCommandView`；
+  适配层 `src/main/plugin/pluginUiCommand.ts`（`uiCommandFromContribute`）；
+  宿主 `PluginHost.uiCommands()` → IPC `plugin:commands`；
+  **执行器（宿主动作词表唯一实现处）** `src/renderer/lib/pluginCommands.ts`（`commandsFor` / `runPluginCommand`）。
+- **AI skill 侧**：`references/ui-command-reference.md` + 骨架 `assets/plugin.ui-command.json` + `checks.md` §2.8。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

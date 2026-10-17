@@ -110,6 +110,18 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] `ext`（若写）为 `[a-z0-9]{1,8}`、不带点
 - [ ] **真机两步**：装 → 「配置 → 直播线路」某行「导出」能选到你的模板并写出文件 → 停用后模板消失（内置 2 个不受影响）
 
+## 2.8 受限动作按钮（`type:"ui.command"`）—— 逐条核对
+> ★ **只声明「按钮 + 宿主词表动作」**（插件不跑代码、不注入 UI）：`references/ui-command-reference.md`；规范 §5.9。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`（同插件可声明多条命令，id 各自不重复）；`label` 非空且 ≤40 字（不含换行）
+- [ ] `placement` 非空数组、每项 ∈ `config` / `player`、不重复
+- [ ] `action` ∈ `open-url` / `navigate` / `export-live` / `set-theme`
+- [ ] **只带该动作自己的参数**：`open-url`→`url`；`navigate`→`to`(+`section`，仅 `to:"config"`)；`export-live`→`template?`；`set-theme`→`theme`
+- [ ] `open-url` 的 `url` 是 `http(s)://` 且不含空白；`navigate` 的 `to` 是**语义名**（`discover/home/history/favorites/live/storage/config/about`，不是 `/xxx` 路径）
+- [ ] `set-theme` 的 `theme` 是真实皮肤 id（内置 4 套或 `plugin:<skinId>`）
+- [ ] 顶层**无多余字段**（`icon` / `onClick` / `script` 一律拒装）
+- [ ] **真机两步**：装 → 「配置 → 插件」出现「插件命令」按钮且可点（`open-url` 会拉起系统浏览器）→ 停用后按钮消失
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -124,6 +136,8 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 弹幕源专属（规范 §5.7）：`DANMAKU_PROVIDER_INVALID` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 直播输出模板专属（规范 §5.8）：`LIVE_TEMPLATE_INVALID` · `BAD_LIVE_TEMPLATE_LINE`
 > ★ 直播输出模板**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH` —— 它不发请求、不取 JSON。
+受限动作按钮专属（规范 §5.9）：`UI_COMMAND_INVALID` · `BAD_UI_COMMAND_URL`
+> ★ 它**不取数、不跑代码**：动作词表外的写法、参数与动作不匹配、`open-url` 非 http(s) → 拒装。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell

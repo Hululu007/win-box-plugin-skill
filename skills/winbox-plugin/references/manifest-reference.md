@@ -35,7 +35,7 @@
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
 | `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
-| `ui.command` | asset / code | M2 | |
+| `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；code 形待 L4） |
 
 **禁用**：`code.spider`（引擎解析行为）· `main.hook`（主进程执行）· `drive.provider`（网盘凭据）
 
@@ -120,6 +120,18 @@
   `group` / `header` 是单行；占位符仅 `{group}/{name}/{url}/{logo}/{tvgId}/{tvgName}/{tvgChno}/{index}`。
 - 一个插件可声明**多个**模板（各自独立 id）；宿主自带 2 个内置模板（`builtin:txt` / `builtin:m3u`）。
 - 全量口径 / 自检 / 常见坑 → `references/live-template-reference.md`；骨架 → `assets/plugin.live-template.json`。
+
+## `ui.command` 结构（L3 声明式**受限动作按钮**，★ 不跑代码、不注入 UI）
+```jsonc
+{ "type": "ui.command", "id": "open-help", "label": "打开帮助", "placement": ["config"],
+  "action": "open-url", "url": "https://example.com/help" }
+```
+- 插件只声明「**按钮**（label / placement）+ **动作**（词表）」；按钮由宿主按自己的样式渲染，动作由宿主执行。
+- `placement` ≥1：`config`（配置 → 插件页）/ `player`（播放器控制条）。
+- **动作词表**（只能选）：`open-url`（`url`，仅 http/https）· `navigate`（`to` 语义名 + 仅 `to:"config"` 可用 `section`）·
+  `export-live`（`template?`）· `set-theme`（`theme`，皮肤 id）。
+- ★ **只允许该动作自己的参数**（`navigate` 带 `url`、`open-url` 带 `theme` → 拒装）；顶层多余字段（`icon`/`onClick`/`script`）→ 拒装。
+- 全量口径 / 自检 / 常见坑 → `references/ui-command-reference.md`；骨架 → `assets/plugin.ui-command.json`。
 
 ## runtimeDeps
 ```jsonc
