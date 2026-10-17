@@ -33,6 +33,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      皮肤 = **令牌字典 + 布局声明**，**绝对不写任何 CSS / 选择器 / `.css` 文件**（v1 硬约束）。
      词表（39 项）/ 布局枚举 / `base` 口径 / 自检清单 / **可安装的发布产物示例** → `references/theme-reference.md`；
      骨架 → `assets/plugin.theme.json`；示例 `.winbox` → `assets/theme-sakura.winbox`。
+   - 要**字幕源** → `contributes:[{type:"subtitle.provider", id, name, search:{url,list,map}, fetch:{url}}]`：
+     宿主**代发请求**（你不跑代码）：v1 仅 `GET` + JSON 响应；URL 里用占位符、JSON 里用**受限点号路径**取值。
+     需要 POST / token / 解析 HTML → **只能用 L4**（`kind:"code"`）。
+     结构 / 占位符 / 路径语法 / 自检 / 常见坑 → `references/subtitle-provider-reference.md`；骨架 → `assets/plugin.subtitle-provider.json`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -48,5 +52,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - 宿主速览（冷启动必读）：`references/host-overview.md`
 - 字段与白名单速查：`references/manifest-reference.md`
 - **皮肤（theme）参考**：`references/theme-reference.md`（令牌词表 + 布局枚举 + 自检 + **发布产物示例与自测三步**）
+- **字幕源（subtitle.provider）参考**：`references/subtitle-provider-reference.md`（结构 + 占位符 + JSON 路径 + 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
-- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

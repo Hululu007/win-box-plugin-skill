@@ -173,6 +173,33 @@ Rename-Item super-resolution.zip super-resolution.winbox
 - **令牌词表、取值范围、layout 字段、校验规则、拒装原因码** 见 **§15**（机器可读口径 = `src/shared/plugin.ts` 的 `THEME_TOKENS` / `validateThemeContribute`）。
 - ★ **v1 不允许任何 CSS**：`tokens` 只能取词表内的令牌名；出现词表外的名字（含 `--nf-*` 一类自造前缀）或夹带 `style` / `.css` → 拒装。
 - 内置 4 套皮肤与插件皮肤**同一套契约**（内置皮肤同样只允许一段令牌声明）。
+
+### 5.4 `subtitle.provider` 结构（**L2 声明式字幕源**，2026-10-18 已实装 asset 形）
+```jsonc
+{ "type": "subtitle.provider",
+  "id": "my-subs",                        // [a-z0-9-]{3,40}；不得占用内置源 assrt / subtitlecat
+  "name": "我的字幕站",
+  "search": {
+    "url": "https://sub.example.com/api/search?q={keyword}&ep={ep}",
+    "headers": { "Referer": "https://sub.example.com/" },   // 可选
+    "list": "data.list",                  // ★ 响应里**数组**所在的点号路径
+    "map": { "file": "id", "subname": "filename",          // ★ file / subname 必填
+             "title": "video_title", "lang": "language", "format": "ext", "detail": "note" }
+  },
+  "fetch": { "url": "https://sub.example.com/api/download/{file}", "headers": {} } }
+```
+- ★ **宿主代发请求，插件不跑代码** → `kind:"asset"`、`permissions` **必须为空**、**不得有 `main`**（这正是 L2 的意义）。
+- **v1 能力边界**：仅 `GET`、仅 JSON 响应、**无鉴权**。需要 `POST` / token / 解析 HTML → **只能用 L4**（`kind:"code"`）。
+- **占位符白名单**：`search` 用 `{keyword}` `{keywords}` `{title}` `{ep}`；`fetch` 用 `{file}` `{subname}` `{title}` `{ep}`。
+  越界（如 `search.url` 写 `{file}`）→ 拒装。URL 里的值经 **`encodeURIComponent`**；请求头的值**原样**替换。
+- **`fetch.url` 必须含 `{file}`**（据候选的下载标识定位具体字幕）。
+- **JSON 路径语法**：仅 `a.b` / `a.b[0]`（点号 + 下标）；**无 `[*]`、无函数、无过滤**。非法 → 拒装。
+- **请求头**：禁 `Host` / `Content-Length` / `Connection` / `Transfer-Encoding`；键值皆禁 CRLF 注入。
+- 装上后**自动出现在「字幕设置」的源开关列表**（与内置源同列，可单独关掉）。
+- **拒装原因码**：`SUBTITLE_PROVIDER_INVALID`（结构/字段越界）· `SUBTITLE_ID_TAKEN`（占用内置源 id）·
+  `BAD_PROVIDER_URL`（协议 / 占位符 / 请求头）· `BAD_PROVIDER_PATH`（JSON 路径语法）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `SubtitleProviderContribute` / `validateSubtitleProviderContribute` /
+  `RESERVED_SUBTITLE_IDS` / `expandSubTemplate` / `jsonPathGet`。
 - 可直接安装的示例皮肤包：[`skills/winbox-plugin/assets/theme-sakura.winbox`](skills/winbox-plugin/assets/theme-sakura.winbox)
   （打包命令与自测三步见 [`skills/winbox-plugin/references/theme-reference.md`](skills/winbox-plugin/references/theme-reference.md) §6）。
 

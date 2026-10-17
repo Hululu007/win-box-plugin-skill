@@ -1,6 +1,6 @@
 # plugin.json 字段与白名单速查
 
-> 唯一权威：仓库根目录的 `SPEC.md` §4~§6。本文件是**速查**，冲突时以规范为准。
+> 唯一权威：`SPEC.md` §4~§6。本文件是**速查**，冲突时以规范为准。
 
 ## 字段
 | 字段 | 类型 | 必填 | 约束 |
@@ -22,15 +22,18 @@
 | `updateCheckUrl` | string | 可选 | `https://`；作者自配的更新源 |
 
 ## contributes 白名单（含允许的 kind）
-| type | 允许 kind | 阶段 |
-|---|---|---|
-| `mpv.shaders` | asset | M1 |
-| `theme` | asset | M2 |
-| `danmaku.source` / `subtitle.provider` / `meta.provider` / `discover.source` | asset / code | M2 |
-| `live.template` | asset | M2 |
-| `player.engine` | code | M2（风险高，需显式授权） |
-| `ui.slot` / `settings.panel` / `keymap` | asset | M2 |
-| `ui.command` | asset / code | M2 |
+> ★ **「已在宿主实装」一列**：✅ = 现在就能真正生效；空白 = 宿主已认识、但装配接线尚未落地（装上会被忽略并告警）。
+
+| type | 允许 kind | 阶段 | 已在宿主实装 |
+|---|---|---|---|
+| `mpv.shaders` | asset | M1 | ✅ |
+| `theme` | asset | M2 | ✅ |
+| `subtitle.provider` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
+| `danmaku.source` / `meta.provider` / `discover.source` | asset / code | M2 | |
+| `live.template` | asset | M2 | |
+| `player.engine` | code | M2（风险高，需显式授权） | |
+| `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
+| `ui.command` | asset / code | M2 | |
 
 **禁用**：`code.spider`（引擎解析行为）· `main.hook`（主进程执行）· `drive.provider`（网盘凭据）
 
@@ -45,6 +48,19 @@
   "modes": [ { "id": "efficiency", "label": "效率档", "hint": "弱机可用", "shaders": ["a.glsl", "b.glsl"] } ] }
 ```
 - `shaders` **顺序即生效顺序**；名称**先插件 `files/`、再 runtimeDeps 目录**解析为绝对路径（**不要写绝对路径**）。
+
+## `subtitle.provider` 结构（L2 声明式字幕源）
+```jsonc
+{ "type": "subtitle.provider", "id": "my-subs", "name": "我的字幕站",
+  "search": { "url": "https://sub.example.com/api/search?q={keyword}&ep={ep}",
+              "list": "data.list",
+              "map": { "file": "id", "subname": "filename", "title": "video_title", "lang": "language" } },
+  "fetch":  { "url": "https://sub.example.com/api/download/{file}" } }
+```
+- **宿主代发请求**（插件不跑代码）：v1 仅 `GET` + **JSON** 响应；`fetch.url` 必须含 `{file}`。
+- 占位符：search 用 `{keyword}/{keywords}/{title}/{ep}`；fetch 用 `{file}/{subname}/{title}/{ep}`。
+- JSON 路径只支持**点号 + 下标**（`data.list` / `a.b[0]`），无 `[*]`、无函数。
+- 全量口径 / 自检 / 常见坑 → `references/subtitle-provider-reference.md`；骨架 → `assets/plugin.subtitle-provider.json`。
 
 ## runtimeDeps
 ```jsonc

@@ -51,6 +51,17 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] **亮色皮肤已给全颜色类令牌**（surface×5 / accent×6 / text×3 / border×3 / 语义×4），否则未覆盖项会漏出深色基线
 - [ ] 装上后三步走通：设置页出现该皮肤 → 选中即时生效 → 卸载回落默认皮肤
 
+## 2.3 字幕源（`type:"subtitle.provider"`）—— 逐条核对
+> 结构 / 占位符 / JSON 路径全量口径：`references/subtitle-provider-reference.md`；规范 §5.4。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**（code 插件不得声明 → `UNKNOWN_CONTRIBUTE_KIND`）
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`，且**不占用**内置源 `assrt` / `subtitlecat`（`SUBTITLE_ID_TAKEN`）
+- [ ] `search.url` / `fetch.url` 均 `http(s)://`；**`fetch.url` 含 `{file}`**（`BAD_PROVIDER_URL`）
+- [ ] 占位符在白名单内：search 用 `{keyword}/{keywords}/{title}/{ep}`，fetch 用 `{file}/{subname}/{title}/{ep}`
+- [ ] `headers` 无 `Host`/`Content-Length`/`Connection`/`Transfer-Encoding`，值里无换行
+- [ ] `search.list` 与 `map.file`/`map.subname` 是**合法点号路径**（只支持 `a.b[0]`，无 `[*]`/无函数）（`BAD_PROVIDER_PATH`）
+- [ ] `map` 只含 `file/subname/title/lang/format/detail`，且 `file`/`subname` 必有
+- [ ] **真机三步**：装上 → 字幕设置出现该源 → 搜到候选且能下载 → 卸载后源消失（内置源不受影响）
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -59,6 +70,7 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 ## 4. 对照拒装原因码（规范 §10）
 `MISSING_MANIFEST` · `ID_INVALID` · `API_VERSION_MISMATCH` · `KIND_PERM_MISMATCH` · `UNKNOWN_CONTRIBUTE` · `PATH_ESCAPE` · `SHA_MISMATCH` · `INCOMPLETE` · `DEP_NOT_ALLOWED`
 皮肤专属（规范 §5）：`THEME_TOKENS_REQUIRED` · `UNKNOWN_THEME_TOKEN` · `BAD_THEME_TOKEN_VALUE` · `THEME_STYLE_NOT_ALLOWED` · `BAD_THEME_LAYOUT` · `THEME_ID_TAKEN`
+字幕源专属（规范 §5.4）：`SUBTITLE_PROVIDER_INVALID` · `SUBTITLE_ID_TAKEN` · `BAD_PROVIDER_URL` · `BAD_PROVIDER_PATH`
 
 ## 5. 打包（PowerShell 示例）
 ```powershell
@@ -73,3 +85,5 @@ Rename-Item out.zip <id>.winbox
   **没有 `files/`、没有任何 `.css`**。照抄命令时把 `files` 去掉：
   `Compress-Archive -Path plugin.json, LICENSE -DestinationPath out.zip` → `Rename-Item out.zip <插件 id>.winbox`。
   可直接对照归档的发布产物示例 **`assets/theme-sakura.winbox`**（见 `references/theme-reference.md` §6；含自测三步）。
+- ★ **字幕源（`type:"subtitle.provider"`）同理**：声明式、**无代码、无 `files/`**，包内只有 `plugin.json` + `LICENSE`
+  （作者自建的公开 JSON 接口不需要随包任何资源）。

@@ -1,6 +1,6 @@
 # 宿主速览（Win-Box 是什么 / 插件挂在哪）
 
-> 冷启动先读这一页，补齐"项目背景常识"。字段与契约以规范为准（公开仓 `SPEC.md` / 主仓 `docs/design/插件制作规范.md`）。
+> 冷启动先读这一页，补齐"项目背景常识"。字段与契约以规范为准（`SPEC.md`）。
 
 ## Win-Box 是什么
 - 基于 **Electron** 的 Windows 桌面影视播放器，可导入第三方源 / 直播源。
@@ -8,7 +8,8 @@
 
 ## 对插件最重要的几条
 - ★ **`mpv.shaders`（MPV 着色器）只在 MPV 内核生效**；HTML5 内核**跑不了 GLSL**。
-- 当前里程碑 **M1 只支持一种 contribute：`mpv.shaders`**；其余（`theme` / 各类 provider / `ui.slot` / `player.engine` …）规划在 M2。
+- 已实装的 contribute：**`mpv.shaders`**（着色器档位）、**`theme`**（皮肤）、**`subtitle.provider`**（字幕源，L2 声明式：
+  宿主按你的 URL 模板代发请求，你不跑代码）；其余（弹幕 / 元数据 / 发现页 / `ui.slot` / `player.engine` …）陆续接线。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 
 ## 插件在软件里出现在哪
