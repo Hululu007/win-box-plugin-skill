@@ -57,6 +57,10 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
      ★ **插件不跑代码、不注入 UI** —— 只声明「按钮」+ 宿主**动作词表**里的一条动作（`open-url` / `navigate` / `export-live` / `set-theme`）。
      ★ **只带该动作自己的参数**（`navigate` 写 `to` 语义名而不是路径）；顶层多余字段（`icon`/`onClick`/`script`）一律拒装。
      结构 / 自检 / 常见坑 → `references/ui-command-reference.md`；骨架 → `assets/plugin.ui-command.json`。
+   - 要**追加快捷键** → `contributes:[{type:"keymap", id, label, scope:["app"|"player"], key, action, …}]`：
+     ★ 与**受限动作按钮同一套动作词表**（`open-url` / `navigate` / `export-live` / `set-theme`），快捷键只是**另一种触发方式**。
+     ★ **不与宿主冲突的硬护栏**：`key` **必须含 `Ctrl`/`Alt`/`Meta` 至少一个**，主键仅字母 / 数字 / `F1~F24`（**不含方向键/Backspace/Esc**）。
+     结构 / 自检 / 常见坑 → `references/keymap-reference.md`；骨架 → `assets/plugin.keymap.json`。
 4. **打包**：zip → 改名 `<id>.winbox`（`plugin.json` 必须在**根级**，不得多套目录层）。
 5. **自检**：逐条走 `references/checks.md`；对照规范 §10 的拒装原因码。
 
@@ -65,7 +69,7 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 |---|---|---|---|---|
 | L1 声明式资源 | `asset` | 必填 | 空 | `mpv.shaders`、`theme` |
 | L2 声明式数据源 | `asset` | 必填 | 空 | 弹幕 / 字幕 / 元数据源；`live.template`（输出模板） |
-| L3 UI 槽位 | `asset` | 必填 | 空 | `ui.slot`、`ui.command`（受限动作按钮） |
+| L3 UI 槽位 | `asset` | 必填 | 空 | `ui.slot`、`ui.command`（受限动作按钮）、`keymap`（追加快捷键） |
 | L4 沙箱代码 | `code` | 可组合 | 必填（白名单） | 需出网 / 存数据 / 控制播放 |
 
 ## 参考
@@ -78,5 +82,6 @@ description: Author, validate, and package Win-Box .winbox plugins. Use when the
 - **弹幕源（danmaku.source）参考**：`references/danmaku-source-reference.md`（三步链路 + 按段占位符 + 只收 XML + 自检 + 常见坑）
 - **直播输出模板（live.template）参考**：`references/live-template-reference.md`（结构 + 占位符 + 渲染规则 + ★ 不发请求 + 自检 + 常见坑）
 - **受限动作按钮（ui.command）参考**：`references/ui-command-reference.md`（动作词表 + 挂载点 + 判定路径 + 自检 + 常见坑）
+- **追加快捷键（keymap）参考**：`references/keymap-reference.md`（键位护栏 + 作用域 + 复用动作词表 + 自检 + 常见坑）
 - 发布前校验清单：`references/checks.md`
-- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `plugin.live-template.json` / `plugin.ui-command.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）
+- 骨架与示例产物：`assets/`（`plugin.asset.json` / `plugin.code.json` / `plugin.theme.json` / `plugin.subtitle-provider.json` / `plugin.meta-provider.json` / `plugin.discover-source.json` / `plugin.danmaku-source.json` / `plugin.live-template.json` / `plugin.ui-command.json` / `plugin.keymap.json` / `example-super-resolution.plugin.json` / **`theme-sakura.winbox`（可直接装的示例皮肤包）**）

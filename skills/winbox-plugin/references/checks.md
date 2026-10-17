@@ -122,6 +122,18 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] 顶层**无多余字段**（`icon` / `onClick` / `script` 一律拒装）
 - [ ] **真机两步**：装 → 「配置 → 插件」出现「插件命令」按钮且可点（`open-url` 会拉起系统浏览器）→ 停用后按钮消失
 
+## 2.9 追加快捷键（`type:"keymap"`）—— 逐条核对
+> ★ **只声明「键位 + 宿主词表动作」**（插件不跑代码、不注入 UI；动作与 `ui.command` **同一套词表**）：`references/keymap-reference.md`；规范 §5.10。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`（同插件可声明多条快捷键，id 各自不重复）；`label` 非空且 ≤40 字（不含换行）
+- [ ] `scope` 非空数组、每项 ∈ `app` / `player`、不重复
+- [ ] `key` **含 `Ctrl` / `Alt` / `Meta` 至少一个**（仅 `Shift` 不算）；主键是字母 / 数字 / `F1~F24`（**不含方向键 / `Backspace` / `Esc`**）
+- [ ] `action` ∈ `open-url` / `navigate` / `export-live` / `set-theme`（与 `ui.command` 同词表）
+- [ ] **只带该动作自己的参数**：`open-url`→`url`；`navigate`→`to`(+`section`，仅 `to:"config"`)；`export-live`→`template?`；`set-theme`→`theme`
+- [ ] `open-url` 的 `url` 是 `http(s)://` 且不含空白；`navigate` 的 `to` 是**语义名**（不是 `/xxx` 路径）
+- [ ] 顶层**无多余字段**（`when` / `handler` / `script` 一律拒装）
+- [ ] **真机两步**：装 → 在 `scope` 对应窗口按键能触发（`navigate` 跳页 / `open-url` 拉起浏览器），配置页「快捷键」tab 出现「插件快捷键」一览 → 停用后一览与生效同时消失（宿主自身键位不受影响）
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -138,6 +150,8 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 > ★ 直播输出模板**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH` —— 它不发请求、不取 JSON。
 受限动作按钮专属（规范 §5.9）：`UI_COMMAND_INVALID` · `BAD_UI_COMMAND_URL`
 > ★ 它**不取数、不跑代码**：动作词表外的写法、参数与动作不匹配、`open-url` 非 http(s) → 拒装。
+追加快捷键专属（规范 §5.10）：`KEYMAP_INVALID` · `BAD_KEYMAP_KEY` · `BAD_KEYMAP_URL`
+> ★ 它同样**不取数、不跑代码**，动作词表与 §5.9 相同；键位缺修饰键 / 主键越界 → `BAD_KEYMAP_KEY`。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell

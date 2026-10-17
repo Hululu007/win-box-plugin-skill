@@ -375,6 +375,47 @@ Rename-Item super-resolution.zip super-resolution.winbox
   宿主 `PluginHost.uiCommands()` → IPC `plugin:commands`；
   **执行器（宿主动作词表唯一实现处）** `src/renderer/lib/pluginCommands.ts`（`commandsFor` / `runPluginCommand`）。
 - **AI skill 侧**：`references/ui-command-reference.md` + 骨架 `assets/plugin.ui-command.json` + `checks.md` §2.8。
+
+### 5.10 `keymap` 结构（**L3 声明式追加快捷键**，2026-10-18 已实装 asset 形）
+> ★ 与 §5.9 `ui.command` 是**同一套动作词表** —— 快捷键只是另一种**触发方式**（按钮 / 键盘），
+> 动作的实际执行仍由**渲染层** `src/renderer/lib/pluginCommands.ts` 完成。
+> 插件**不跑代码、不注入任何 UI**；「不与宿主冲突」是**词法级硬护栏**（见下）。
+
+```jsonc
+{ "type": "keymap",
+  "id": "go-discover",                 // [a-z0-9-]{3,40}；同一插件可声明**多条**（各自独立 id）
+  "label": "去发现页",                  // 中文说明（1~40 字，不含换行；配置页一览 / 播放器键位面板显示）
+  "title": "跳到发现页",                // 可选：悬停提示（≤120 字）
+  "scope": ["app"],                    // 生效范围，≥1：app（主窗口全局）/ player（播放器窗口）
+  "key": "Ctrl+Alt+F",                 // 键位串（**必须含 Ctrl / Alt / Meta 至少一个**）
+  "action": "navigate",                // 动作词表（与 §5.9 完全相同）
+  "to": "discover" }
+```
+
+**键位串**（★「不与宿主冲突」的核心护栏）：
+- 形如 `Ctrl+Alt+F`：`修饰键(+修饰键…)+主键`；修饰键 ∈ `Ctrl` / `Alt` / `Shift` / `Meta`
+  （别名归一：`Control`→Ctrl、`Option`→Alt、`Cmd`/`Command`/`Super`/`Win`→Meta；大小写不敏感、顺序不限）。
+- ★ **必须含 `Ctrl` / `Alt` / `Meta` 至少一个** —— 仅 `Shift` 不算（避免劫持普通按键 / 与输入冲突）。
+- ★ **主键仅允许**：单个字母 `A~Z`、数字 `0~9`、功能键 `F1~F24`。
+  **不含**方向键 / `Backspace` / `Esc` / `Tab` 等宿主已占用键 —— 从**词法**上杜绝与宿主快捷键冲突。
+- 规范化：修饰键固定顺序 `Ctrl → Alt → Shift → Meta`，主键大写（宿主在装配时归一并落入视图）。
+
+**作用域 `scope`**：`app`（主窗口，全局）/ `player`（播放器窗口）。
+- ★ 分发在**渲染层**（`src/renderer/lib/pluginKeymaps.ts`）：命中后 `preventDefault` 并交给 `runPluginCommand`（动作词表唯一实现）。
+- 输入控件内（`INPUT` / `TEXTAREA` / `SELECT` / 可编辑）不触发（与宿主键位同口径）。
+
+**动作词表 / 参数**：与 §5.9 `ui.command` **完全一致**（`open-url` / `navigate` / `export-live` / `set-theme` 及其参数规则）。
+- **生效位置**：快捷键**真实分发**（`app` → 主窗口；`player` → 播放器窗口）；另在**配置页「快捷键」tab**有**只读一览**，
+  `player` 作用域的还会出现在**播放器「键位」面板**（复用宿主样式，不注入任何插件 UI）。
+- **拒装原因码**：`KEYMAP_INVALID`（结构 / 字段 / `scope` / 动作词表 / 参数与动作不匹配 / `label`·`title`·`confirm` 边界）·
+  `BAD_KEYMAP_KEY`（键位串非法：缺修饰键 / 主键越界 / 未知修饰键）· `BAD_KEYMAP_URL`（`open-url` 的 `url` 非 http(s) 或含空白）。
+  > ★ 本类型**没有** `BAD_PROVIDER_URL` / `BAD_PROVIDER_PATH`（不取数、不取 JSON）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `KeymapContribute` / `KeymapScope` / `KeymapAction` / `KeymapModifier` /
+  `KEYMAP_SCOPES` / `KEYMAP_MODIFIERS` / `parseKeyCombo` / `validateKeymapContribute` / `keymapContributeOf` / `KeymapView`；
+  适配层 `src/main/plugin/pluginKeymap.ts`（`keymapFromContribute`）；宿主 `PluginHost.keymaps()` → IPC `plugin:keymaps`；
+  **分发器** `src/renderer/lib/pluginKeymaps.ts`（`keymapsFor` / `keymapEventMatches` / `usePluginKeymaps`）；
+  动作执行**复用** `src/renderer/lib/pluginCommands.ts`（`runPluginCommand`）。
+- **AI skill 侧**：`references/keymap-reference.md` + 骨架 `assets/plugin.keymap.json` + `checks.md` §2.9。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）

@@ -34,8 +34,9 @@
 | `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
-| `ui.slot` / `settings.panel` / `keymap` | asset | M2 | |
+| `ui.slot` / `settings.panel` | asset | M2 | |
 | `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；code 形待 L4） |
+| `keymap` | asset | M2 | ✅（asset 追加快捷键；动作复用 `ui.command` 词表） |
 
 **禁用**：`code.spider`（引擎解析行为）· `main.hook`（主进程执行）· `drive.provider`（网盘凭据）
 
@@ -132,6 +133,20 @@
   `export-live`（`template?`）· `set-theme`（`theme`，皮肤 id）。
 - ★ **只允许该动作自己的参数**（`navigate` 带 `url`、`open-url` 带 `theme` → 拒装）；顶层多余字段（`icon`/`onClick`/`script`）→ 拒装。
 - 全量口径 / 自检 / 常见坑 → `references/ui-command-reference.md`；骨架 → `assets/plugin.ui-command.json`。
+
+## `keymap` 结构（L3 声明式**追加快捷键**，★ 动作复用 `ui.command` 词表）
+```jsonc
+{ "type": "keymap", "id": "go-discover", "label": "去发现页", "scope": ["app"],
+  "key": "Ctrl+Alt+F", "action": "navigate", "to": "discover" }
+```
+- ★「不与宿主冲突」的**硬护栏**：`key` **必须含 `Ctrl` / `Alt` / `Meta` 至少一个**（仅 `Shift` 不算）；
+  主键**仅允许**字母 `A~Z` / 数字 `0~9` / 功能键 `F1~F24`（不含方向键 / `Backspace` / `Esc`）。
+  归一化：修饰键固定顺序 `Ctrl→Alt→Shift→Meta` + 主键大写（`alt+ctrl+f` → `Ctrl+Alt+F`）。
+- `scope` 非空数组 ∈ `app`（主窗口）/ `player`（播放器窗口）；可同时声明两者。
+- **动作词表**（与 `ui.command` 完全相同）：`open-url`（`url`，仅 http/https）· `navigate`（`to` 语义名 + 仅 `to:"config"` 可用 `section`）·
+  `export-live`（`template?`）· `set-theme`（`theme`）。★ 只允许该动作自己的参数；顶层多余字段（`when`/`handler`/`script`）→ 拒装。
+- 于**配置页「快捷键」tab** 有「插件快捷键」只读一览；`player` 作用域亦出现在播放器「键位」面板。
+- 全量口径 / 自检 / 常见坑 → `references/keymap-reference.md`；骨架 → `assets/plugin.keymap.json`。
 
 ## runtimeDeps
 ```jsonc
