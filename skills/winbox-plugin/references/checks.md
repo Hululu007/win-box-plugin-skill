@@ -134,6 +134,16 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 - [ ] 顶层**无多余字段**（`when` / `handler` / `script` 一律拒装）
 - [ ] **真机两步**：装 → 在 `scope` 对应窗口按键能触发（`navigate` 跳页 / `open-url` 拉起浏览器），配置页「快捷键」tab 出现「插件快捷键」一览 → 停用后一览与生效同时消失（宿主自身键位不受影响）
 
+## 2.10 插件设置面板（`type:"settings.panel"`）—— 逐条核对
+> ★ **只声明「一组受限字段」**（插件不跑代码、不注入 UI；宿主渲染表单 + 代持久化）：`references/settings-panel-reference.md`；规范 §5.11。
+- [ ] 插件是 `kind:"asset"` + `permissions: []` + **无 `main`**
+- [ ] `id` 匹配 `[a-z0-9-]{3,40}`（同插件可声明多个面板，id 各自不重复）；`label` 非空且 ≤40 字
+- [ ] `fields` 1~24 项；每项 `key` 匹配 `[a-z0-9-]{1,40}` 且同面板内唯一；`label` 非空且 ≤40 字
+- [ ] 每个字段 `type` ∈ `toggle` / `select` / `text` / `number`；`default` **与 type 匹配**
+- [ ] `select` 有 `options`（1~50 项、`value` 唯一）且 `default` 是其之一；`text` 的 `maxLength`（若有）为 1~200 整数、`default` 不超长；`number` 的 `default` 落在 `[min, max]`
+- [ ] **只带该类型自己的参数**（`toggle` 带 `options`、`text` 带 `min` → 拒装）；顶层**无多余字段**
+- [ ] **真机两步**：装 → 「配置 → 插件」该插件卡片内出现表单 → 改一个字段后**重开软件值仍在**（已落盘）→ 停用后面板消失
+
 ## 3. 行为约定
 - [ ] 插件可被**随时停用**而不报错
 - [ ] 若贡献正生效（如超分档位），**移除**时能回落默认
@@ -152,6 +162,8 @@ Expand-Archive "$env:TEMP\pkg.zip" -DestinationPath "$env:TEMP\pkg" -Force
 > ★ 它**不取数、不跑代码**：动作词表外的写法、参数与动作不匹配、`open-url` 非 http(s) → 拒装。
 追加快捷键专属（规范 §5.10）：`KEYMAP_INVALID` · `BAD_KEYMAP_KEY` · `BAD_KEYMAP_URL`
 > ★ 它同样**不取数、不跑代码**，动作词表与 §5.9 相同；键位缺修饰键 / 主键越界 → `BAD_KEYMAP_KEY`。
+插件设置面板专属（规范 §5.11）：`SETTINGS_PANEL_INVALID` · `BAD_SETTINGS_DEFAULT`
+> ★ 它**不取数、不跑代码**：宿主渲染表单并**代持久化**；参数与类型不匹配 → INVALID，`default` 与类型不符 → `BAD_SETTINGS_DEFAULT`。
 
 ## 5. 打包（PowerShell 示例）
 ```powershell

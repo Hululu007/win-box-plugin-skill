@@ -34,9 +34,10 @@
 | `danmaku.source` | asset / code | M2 | ✅（asset 声明式；code 形待 L4） |
 | `live.template` | asset | M2 | ✅（输出侧格式化；★ 不发请求） |
 | `player.engine` | code | M2（风险高，需显式授权） | |
-| `ui.slot` / `settings.panel` | asset | M2 | |
+| `ui.slot` | asset | M2 | |
 | `ui.command` | asset / code | M2 | ✅（asset 受限动作按钮；code 形待 L4） |
 | `keymap` | asset | M2 | ✅（asset 追加快捷键；动作复用 `ui.command` 词表） |
+| `settings.panel` | asset | M2 | ✅（asset 设置面板；宿主渲染 + 代持久化，读取面待 L4） |
 
 **禁用**：`code.spider`（引擎解析行为）· `main.hook`（主进程执行）· `drive.provider`（网盘凭据）
 
@@ -147,6 +148,19 @@
   `export-live`（`template?`）· `set-theme`（`theme`）。★ 只允许该动作自己的参数；顶层多余字段（`when`/`handler`/`script`）→ 拒装。
 - 于**配置页「快捷键」tab** 有「插件快捷键」只读一览；`player` 作用域亦出现在播放器「键位」面板。
 - 全量口径 / 自检 / 常见坑 → `references/keymap-reference.md`；骨架 → `assets/plugin.keymap.json`。
+
+## `settings.panel` 结构（L3 声明式**插件设置面板**，★ 宿主渲染 + 代持久化）
+```jsonc
+{ "type": "settings.panel", "id": "general", "label": "常规设置",
+  "fields": [ { "key": "enhance", "label": "启用增强", "type": "toggle", "default": true } ] }
+```
+- ★ 字段是**受限词汇表**（只 4 类，不能自己写控件）：`toggle`(boolean) · `select`(string，**必填** `options` 1~50 项) ·
+  `text`(string，可选 `maxLength` 1~200 / `placeholder` ≤60) · `number`(可选 `min`/`max`/`step`)。
+  每项须有 `key`（`[a-z0-9-]{1,40}`，同面板内唯一）、`label`、`type`、`default`（**必须与 type 匹配**）；可选 `hint`。
+- ★ **参数必须与类型匹配**（`toggle` 带 `options`、`text` 带 `min` → 拒装）；`select` 缺 `options` → 拒装。
+- 值由宿主按 `pluginId → panelId → fieldKey` 存 `<userData>/plugin-settings.json`；读回时存值合法则用存值、否则回落 `default`。
+- 展示在**配置 → 插件**页每个插件卡片内；★ **值的读取面留给 L4**（`kind:"code"` + `settings` 权限）；卸载**不清理**值。
+- 全量口径 / 自检 / 常见坑 → `references/settings-panel-reference.md`；骨架 → `assets/plugin.settings-panel.json`。
 
 ## runtimeDeps
 ```jsonc

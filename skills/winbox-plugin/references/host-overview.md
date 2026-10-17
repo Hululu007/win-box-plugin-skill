@@ -16,7 +16,8 @@
   **`live.template`**（直播**输出**模板，★ **不发请求**：只把宿主已解析的频道格式化导出为 TXT / M3U）；
   **`ui.command`**（受限动作按钮，**L3**：往配置页 / 播放器加按钮，动作走宿主**词表**）；
   **`keymap`**（追加快捷键，**L3**：`app`=主窗口 / `player`=播放器窗口；★ 动作**复用** `ui.command` 词表，键位强制含 Ctrl/Alt/Meta）；
-  其余（`ui.slot` / `settings.panel` / `player.engine` …）陆续接线。
+  **`settings.panel`**（插件设置面板，**L3**：宿主按**受限词汇表**渲染表单 + **代持久化**值；★ 值的读取面待 L4）；
+  其余（`ui.slot` / `player.engine` …）陆续接线。
 - 插件产物 = **`.winbox`**（就是 zip）；官方首个插件是**超分辨率**（Anime4K / RAVU-Lite / FSRCNNX 着色器）。
 
 ## 插件在软件里出现在哪

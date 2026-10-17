@@ -416,6 +416,46 @@ Rename-Item super-resolution.zip super-resolution.winbox
   **分发器** `src/renderer/lib/pluginKeymaps.ts`（`keymapsFor` / `keymapEventMatches` / `usePluginKeymaps`）；
   动作执行**复用** `src/renderer/lib/pluginCommands.ts`（`runPluginCommand`）。
 - **AI skill 侧**：`references/keymap-reference.md` + 骨架 `assets/plugin.keymap.json` + `checks.md` §2.9。
+
+### 5.11 `settings.panel` 结构（**L3 声明式插件设置面板**，2026-10-18 已实装 asset 形）
+> ★ 插件**不跑代码、不注入任何 UI**（红线②）—— 只声明「一组**受限字段**」（label / type / default），
+> 宿主把它渲染成**宿主样式的表单**，并**代插件持久化**字段值（按插件 id 分桶存 `<userData>/plugin-settings.json`）。
+> ★ **值的读取面留给 L4**（`kind:"code"` + `settings` 权限 → `winbox.settings`）—— 与 §5.4~§5.10「asset 先实装、code 形待 L4」同口径。
+
+```jsonc
+{ "type": "settings.panel",
+  "id": "general",                 // [a-z0-9-]{3,40}；同一插件可声明**多个**面板（各自独立 id）
+  "label": "常规设置",              // 面板标题（1~40 字，不含换行）
+  "title": "常规设置（悬浮说明）",   // 可选：悬停提示（≤120 字）
+  "fields": [                      // ★ 字段：≥1、≤24；key 不得重复
+    { "key": "enhance", "label": "启用增强", "type": "toggle", "default": true, "hint": "说明文字" },
+    { "key": "quality", "label": "画质档", "type": "select", "default": "hd",
+      "options": [ { "value": "sd", "label": "标清" }, { "value": "hd" } ] },
+    { "key": "proxy", "label": "代理地址", "type": "text", "default": "", "maxLength": 100, "placeholder": "http://…" },
+    { "key": "threads", "label": "线程数", "type": "number", "default": 4, "min": 1, "max": 16, "step": 1 }
+  ] }
+```
+
+**受限字段词表（★ 只能选这 4 类，不能自己写控件）**：
+
+| `type` | 值类型 | 必填 / 可选参数 |
+|---|---|---|
+| `toggle` | `boolean` | `default` 必填（布尔）；**无**专属参数 |
+| `select` | `string` | `default` 必填（须是某个 option 的 `value`）；`options` **必填**：1~50 项，`{ value(1~60 字,唯一), label?(1~40 字) }` |
+| `text` | `string` | `default` 必填（不含换行、≤`maxLength`）；`maxLength?`（1~200 整数）、`placeholder?`（≤60 字） |
+| `number` | `number` | `default` 必填（有限数字且落在 `[min,max]`）；`min?` / `max?` / `step?`（正数），且 `min ≤ max` |
+
+- ★ **参数必须与类型匹配** —— `toggle` 带 `options`、`text` 带 `min`、`number` 带 `maxLength`、`select` 缺 `options` **一律拒装**（同 §5.9/§5.10 口径）。
+- 公共字段：每项须有 `key`（`[a-z0-9-]{1,40}`，同面板内唯一；**L4 读取时按它取值**）、`label`（1~40 字）、`type`、`default`；可选 `hint`（≤120 字，不含换行）。
+- **值的持久化**：宿主按 `pluginId → panelId → fieldKey` 分桶存 `<userData>/plugin-settings.json`；读回时**存值合法则用存值、否则回落 `default`**（防记忆损坏 / 旧版本残留）。`set` 时值**必须过该字段的类型 / 约束**，不合法 → **明确失败，不静默强转**。
+- **生效位置**：**配置 → 插件/组件**页里**每个插件的卡片内**（该插件声明了面板才显示）。★ 卸载**不清理**设置值（便于重装后沿用）。
+- **拒装原因码**：`SETTINGS_PANEL_INVALID`（结构 / 字段 / 类型白名单 / 参数与类型不匹配 / `key`·`label`·`title`·`hint` 边界 / options 边界）·
+  `BAD_SETTINGS_DEFAULT`（`default` 与 `type` 不匹配：toggle 非布尔 / select 不在 options / text 超 `maxLength` / number 越界或非数字）。
+- **机器可读口径**：`src/shared/plugin.ts` 的 `SettingsPanelContribute` / `SettingsFieldContribute` / `SettingsFieldType` / `SettingsValue` / `SettingsOption` /
+  `SETTINGS_FIELD_TYPES` / `settingsValueError` / `settingsEffectiveValue` / `validateSettingsPanelContribute` / `settingsPanelContributeOf` / `SettingsPanelView` / `SettingsFieldView`；
+  适配层 `src/main/plugin/pluginSettingsPanel.ts`（`settingsPanelFromContribute`）；宿主 `PluginHost.settingsPanels()` / `setPluginSetting()` → IPC `plugin:settings` / `plugin:settings:set`；
+  ★ 持久化 = `PluginHost` 的设置 JsonStore（`<userData>/plugin-settings.json`）；表单渲染与写回 = **渲染层**（`ConfigPage`）。
+- **AI skill 侧**：`references/settings-panel-reference.md` + 骨架 `assets/plugin.settings-panel.json` + `checks.md` §2.10。
 ---
 
 ## 6. 权限：`permissions`（**只属 L4 / `kind:"code"`**）
